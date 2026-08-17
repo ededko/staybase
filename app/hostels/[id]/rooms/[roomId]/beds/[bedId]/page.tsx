@@ -4,6 +4,9 @@ import { createResident } from "@/app/actions/createResident";
 import { archiveResident } from "@/app/actions/archiveResident";
 import { createPayment } from "@/app/actions/createPayment";
 import { togglePayment } from "@/app/actions/togglePayment";
+import { deleteBed, toggleBedDisabled } from "@/app/actions/beds";
+import { notFound } from "next/navigation";
+import { requireWorkspace } from "@/lib/session";
 
 type Props = {
   params: Promise<{
@@ -11,14 +14,19 @@ type Props = {
     roomId: string;
     bedId: string;
   }>;
+  searchParams: Promise<{ error?: string }>;
 };
 
-export default async function BedPage({ params }: Props) {
+export default async function BedPage({ params, searchParams }: Props) {
   const { id, roomId, bedId } = await params;
+  const { error } = await searchParams;
+  const { workspace } = await requireWorkspace();
 
-  const bed = await prisma.bed.findUnique({
+  const bed = await prisma.bed.findFirst({
     where: {
       id: Number(bedId),
+      roomId: Number(roomId),
+      room: { hostelId: Number(id), hostel: { workspaceId: workspace.id } },
     },
     include: {
   resident: {
@@ -33,9 +41,7 @@ export default async function BedPage({ params }: Props) {
 },
   });
 
-  if (!bed) {
-    return <div className="p-8">Ліжко не знайдено.</div>;
-  }
+  if (!bed) notFound();
 
   return (
     <div className="p-8">
@@ -46,19 +52,42 @@ export default async function BedPage({ params }: Props) {
         ← Назад до кімнати
       </Link>
 
-      <h1 className="mt-6 text-4xl font-bold">
-        🛏 Ліжко №{bed.number}
-      </h1>
+      <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="text-4xl font-bold">🛏 Ліжко №{bed.number}</h1>
+          {bed.notes && <p className="mt-2 text-slate-500">{bed.notes}</p>}
+        </div>
+        <Link
+          href={`/hostels/${id}/rooms/${roomId}/beds/${bed.id}/edit`}
+          className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+        >
+          Редагувати ліжко
+        </Link>
+      </div>
+
+      {error === "occupied" && (
+        <p className="mt-6 rounded-lg bg-red-50 p-4 text-red-700">
+          Зайняте ліжко не можна вимкнути або видалити. Спочатку виселіть мешканця.
+        </p>
+      )}
 
       <div className="mt-8 rounded-2xl border bg-white p-6 shadow-sm">
         <p className="text-slate-500">Статус</p>
 
         <p
           className={`mt-2 text-2xl font-bold ${
-            bed.resident ? "text-red-600" : "text-green-600"
+            bed.isDisabled
+              ? "text-slate-500"
+              : bed.resident
+                ? "text-red-600"
+                : "text-green-600"
           }`}
         >
-          {bed.resident ? "🔴 Зайняте" : "🟢 Вільне"}
+          {bed.isDisabled
+            ? "⚪ Вимкнене"
+            : bed.resident
+              ? "🔴 Зайняте"
+              : "🟢 Вільне"}
         </p>
 
         <hr className="my-6" />
@@ -233,6 +262,13 @@ export default async function BedPage({ params }: Props) {
   </form>
 </div>
           </>
+        ) : bed.isDisabled ? (
+          <div>
+            <h2 className="text-2xl font-bold">Ліжко тимчасово не використовується</h2>
+            <p className="mt-3 text-slate-600">
+              Увімкніть його, щоб знову заселяти мешканців.
+            </p>
+          </div>
         ) : (
           <>
             <h2 className="text-2xl font-bold">
@@ -309,6 +345,32 @@ export default async function BedPage({ params }: Props) {
             </form>
           </>
         )}
+      </div>
+
+      <div className="mt-8 flex flex-wrap gap-3 border-t pt-6">
+        <form action={toggleBedDisabled}>
+          <input type="hidden" name="hostelId" value={id} />
+          <input type="hidden" name="roomId" value={roomId} />
+          <input type="hidden" name="bedId" value={bed.id} />
+          <button
+            disabled={Boolean(bed.resident)}
+            className="rounded-lg bg-slate-600 px-4 py-2 text-white hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {bed.isDisabled ? "Увімкнути ліжко" : "Вимкнути ліжко"}
+          </button>
+        </form>
+
+        <form action={deleteBed}>
+          <input type="hidden" name="hostelId" value={id} />
+          <input type="hidden" name="roomId" value={roomId} />
+          <input type="hidden" name="bedId" value={bed.id} />
+          <button
+            disabled={Boolean(bed.resident)}
+            className="rounded-lg bg-red-600 px-4 py-2 text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Видалити ліжко
+          </button>
+        </form>
       </div>
     </div>
   );

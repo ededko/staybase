@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { updatePaymentFromForm } from "@/app/actions/payments";
+import { requireWorkspace } from "@/lib/session";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -11,9 +12,10 @@ function formatDate(date: Date | null) {
 
 export default async function EditPaymentPage({ params }: Props) {
   const { id } = await params;
+  const { workspace } = await requireWorkspace();
   const [payment, residents] = await Promise.all([
-    prisma.payment.findUnique({ where: { id: Number(id) } }),
-    prisma.resident.findMany({ orderBy: [{ isActive: "desc" }, { lastName: "asc" }, { firstName: "asc" }] }),
+    prisma.payment.findFirst({ where: { id: Number(id), resident: { workspaceId: workspace.id } } }),
+    prisma.resident.findMany({ where: { workspaceId: workspace.id }, orderBy: [{ isActive: "desc" }, { lastName: "asc" }, { firstName: "asc" }] }),
   ]);
 
   if (!payment) notFound();
@@ -33,8 +35,17 @@ export default async function EditPaymentPage({ params }: Props) {
           </select>
         </div>
 
+        <div>
+          <label className="mb-1 block text-sm text-slate-600">Тип платежу</label>
+          <select name="type" defaultValue={payment.type} className="w-full rounded-lg border p-3">
+            <option value="RENT">Оренда</option>
+            <option value="DEPOSIT">Застава</option>
+            <option value="OTHER">Інше</option>
+          </select>
+        </div>
+
         <div className="grid gap-4 md:grid-cols-2">
-          <div><label className="mb-1 block text-sm text-slate-600">Сума</label><input type="number" name="amount" min="0" step="0.01" required defaultValue={Number(payment.amount)} className="w-full rounded-lg border p-3" /></div>
+          <div><label className="mb-1 block text-sm text-slate-600">Сума</label><input type="number" name="amount" min="0.01" step="0.01" required defaultValue={Number(payment.amount)} className="w-full rounded-lg border p-3" /></div>
           <div><label className="mb-1 block text-sm text-slate-600">Термін оплати</label><input type="date" name="dueDate" required defaultValue={formatDate(payment.dueDate)} className="w-full rounded-lg border p-3" /></div>
         </div>
 

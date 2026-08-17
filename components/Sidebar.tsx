@@ -28,6 +28,11 @@ const menu = [
     icon: "💳",
   },
   {
+    name: "Команда",
+    href: "/settings/team",
+    icon: "👥",
+  },
+  {
     name: "Заявки",
     href: "#",
     icon: "📝",

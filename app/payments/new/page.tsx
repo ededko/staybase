@@ -1,9 +1,12 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { createPaymentFromForm } from "@/app/actions/payments";
+import { requireWorkspace } from "@/lib/session";
 
 export default async function NewPaymentPage() {
+  const { workspace } = await requireWorkspace();
   const residents = await prisma.resident.findMany({
+    where: { workspaceId: workspace.id },
     include: {
       bed: {
         include: {
@@ -34,10 +37,19 @@ export default async function NewPaymentPage() {
           </select>
         </div>
 
+        <div>
+          <label className="mb-1 block text-sm text-slate-600">Тип платежу</label>
+          <select name="type" defaultValue="RENT" className="w-full rounded-lg border p-3">
+            <option value="RENT">Оренда</option>
+            <option value="DEPOSIT">Застава</option>
+            <option value="OTHER">Інше</option>
+          </select>
+        </div>
+
         <div className="grid gap-4 md:grid-cols-2">
           <div>
             <label className="mb-1 block text-sm text-slate-600">Сума</label>
-            <input type="number" name="amount" min="0" step="0.01" required className="w-full rounded-lg border p-3" />
+            <input type="number" name="amount" min="0.01" step="0.01" required className="w-full rounded-lg border p-3" />
           </div>
           <div>
             <label className="mb-1 block text-sm text-slate-600">Термін оплати</label>

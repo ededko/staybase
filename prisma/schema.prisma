@@ -7,6 +7,112 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id            String    @id
+  name          String
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  sessions      Session[]
+  accounts      Account[]
+  workspaceMemberships WorkspaceMember[]
+
+  @@map("user")
+}
+
+model Workspace {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  members   WorkspaceMember[]
+  hostels   Hostel[]
+  residents Resident[]
+  invites   WorkspaceInvite[]
+}
+
+model WorkspaceMember {
+  id          String        @id @default(cuid())
+  workspaceId String
+  userId      String
+  role        WorkspaceRole @default(ADMIN)
+  createdAt   DateTime      @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, userId])
+  @@index([userId])
+}
+
+enum WorkspaceRole {
+  OWNER
+  ADMIN
+}
+
+model WorkspaceInvite {
+  id              String   @id @default(cuid())
+  workspaceId     String
+  email           String
+  invitedByUserId String
+  createdAt       DateTime @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, email])
+  @@index([email])
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
+}
+
 model Hostel {
   id        Int      @id @default(autoincrement())
   name      String
@@ -14,8 +120,12 @@ model Hostel {
   city      String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  workspaceId String
 
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   rooms Room[]
+
+  @@index([workspaceId])
 }
 
 model Room {
@@ -35,11 +145,15 @@ model Bed {
   number    Int
   roomId    Int
   notes     String?
+  isDisabled Boolean @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   room     Room       @relation(fields: [roomId], references: [id])
   resident Resident?
+  stays    Stay[]
+
+  @@unique([roomId, number])
 }
 
 model Resident {
@@ -48,6 +162,7 @@ model Resident {
   lastName    String
   phone       String?
   email       String?
+  notes       String?
   checkIn     DateTime
   checkOut    DateTime?
 
@@ -60,9 +175,30 @@ model Resident {
 
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+  workspaceId String
 
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   bed         Bed?      @relation(fields: [bedId], references: [id])
   payments    Payment[]
+  stays       Stay[]
+
+  @@index([workspaceId])
+}
+
+model Stay {
+  id         Int       @id @default(autoincrement())
+  residentId Int
+  bedId      Int
+  startedAt  DateTime
+  endedAt    DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  resident Resident @relation(fields: [residentId], references: [id], onDelete: Cascade)
+  bed      Bed      @relation(fields: [bedId], references: [id])
+
+  @@index([residentId, startedAt])
+  @@index([bedId, startedAt])
 }
 
 model Payment {
@@ -72,9 +208,16 @@ model Payment {
   dueDate    DateTime
   paidAt     DateTime?
   notes      String?
+  type       PaymentType @default(RENT)
   residentId Int
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
 
   resident Resident @relation(fields: [residentId], references: [id])
+}
+
+enum PaymentType {
+  RENT
+  DEPOSIT
+  OTHER
 }

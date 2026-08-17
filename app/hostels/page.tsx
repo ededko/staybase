@@ -1,9 +1,12 @@
 import { prisma } from "@/lib/prisma";
 import HostelCard from "@/components/hostels/HostelCard";
 import CreateHostelButton from "@/components/hostels/CreateHostelButton";
+import { requireWorkspace } from "@/lib/session";
 
 export default async function HostelsPage() {
+  const { workspace } = await requireWorkspace();
   const hostels = await prisma.hostel.findMany({
+    where: { workspaceId: workspace.id },
     include: {
       rooms: {
         include: {

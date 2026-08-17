@@ -1,0 +1,4 @@
+CREATE TYPE "PaymentType" AS ENUM ('RENT', 'DEPOSIT', 'OTHER');
+
+ALTER TABLE "Payment"
+ADD COLUMN "type" "PaymentType" NOT NULL DEFAULT 'RENT';

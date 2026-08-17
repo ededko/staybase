@@ -1,43 +1,30 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { redirect } from "next/navigation";
+import { notFound } from "next/navigation";
+import { createBed } from "@/app/actions/beds";
+import { requireWorkspace } from "@/lib/session";
 
 type Props = {
   params: Promise<{
     id: string;
     roomId: string;
   }>;
+  searchParams: Promise<{ error?: string }>;
 };
 
-async function createBed(formData: FormData) {
-  "use server";
-
-  const hostelId = Number(formData.get("hostelId"));
-  const roomId = Number(formData.get("roomId"));
-  const number = Number(formData.get("number"));
-
-  await prisma.bed.create({
-    data: {
-      number,
-      roomId,
-    },
-  });
-
-  redirect(`/hostels/${hostelId}/rooms/${roomId}`);
-}
-
-export default async function NewBedPage({ params }: Props) {
+export default async function NewBedPage({ params, searchParams }: Props) {
   const { id: hostelId, roomId } = await params;
+  const { error } = await searchParams;
+  const { workspace } = await requireWorkspace();
 
-  const room = await prisma.room.findUnique({
-    where: {
-      id: Number(roomId),
-    },
+  const room = await prisma.room.findFirst({
+    where: { id: Number(roomId), hostelId: Number(hostelId), hostel: { workspaceId: workspace.id } },
+    include: { beds: { select: { number: true } } },
   });
 
-  if (!room) {
-    return <div className="p-8">Кімнату не знайдено.</div>;
-  }
+  if (!room) notFound();
+
+  const nextNumber = Math.max(0, ...room.beds.map((bed) => bed.number)) + 1;
 
   return (
     <div className="p-8 max-w-xl">
@@ -51,6 +38,12 @@ export default async function NewBedPage({ params }: Props) {
       <h1 className="mt-6 text-3xl font-bold">
         Додати ліжко
       </h1>
+
+      {error === "duplicate" && (
+        <p className="mt-6 rounded-lg bg-red-50 p-4 text-red-700">
+          Ліжко з таким номером уже є в цій кімнаті.
+        </p>
+      )}
 
       <form action={createBed} className="mt-8 space-y-6">
         <input
@@ -73,8 +66,19 @@ export default async function NewBedPage({ params }: Props) {
           <input
             name="number"
             type="number"
-            required
-            min={1}
+          required
+          min={1}
+          defaultValue={nextNumber}
+          className="w-full rounded-xl border p-3"
+        />
+      </div>
+
+        <div>
+          <label className="mb-2 block font-medium">Примітка</label>
+          <textarea
+            name="notes"
+            rows={4}
+            placeholder="Наприклад: верхнє ліжко біля вікна"
             className="w-full rounded-xl border p-3"
           />
         </div>

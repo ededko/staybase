@@ -2,13 +2,15 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getPaymentStatus } from "@/lib/payment-service";
+import { requireWorkspace } from "@/lib/session";
 
 type Props = { params: Promise<{ id: string }> };
 
 export default async function PaymentPage({ params }: Props) {
   const { id } = await params;
-  const payment = await prisma.payment.findUnique({
-    where: { id: Number(id) },
+  const { workspace } = await requireWorkspace();
+  const payment = await prisma.payment.findFirst({
+    where: { id: Number(id), resident: { workspaceId: workspace.id } },
     include: {
       resident: {
         include: {
@@ -29,6 +31,7 @@ export default async function PaymentPage({ params }: Props) {
   const status = getPaymentStatus(payment);
   const statusText = status === "paid" ? "Оплачено" : status === "overdue" ? "Прострочено" : "Очікує оплату";
   const statusClass = status === "paid" ? "text-green-600" : status === "overdue" ? "text-red-600" : "text-amber-600";
+  const typeText = payment.type === "DEPOSIT" ? "Застава" : payment.type === "OTHER" ? "Інше" : "Оренда";
 
   return (
     <div className="max-w-3xl p-8">
@@ -46,6 +49,7 @@ export default async function PaymentPage({ params }: Props) {
         <dl className="grid gap-5 md:grid-cols-2">
           <div><dt className="text-sm text-slate-500">Сума</dt><dd className="mt-1 text-2xl font-bold">{Number(payment.amount).toFixed(2)} zł</dd></div>
           <div><dt className="text-sm text-slate-500">Статус</dt><dd className={`mt-1 text-lg font-semibold ${statusClass}`}>{statusText}</dd></div>
+          <div><dt className="text-sm text-slate-500">Тип платежу</dt><dd className="mt-1">{typeText}</dd></div>
           <div><dt className="text-sm text-slate-500">Термін оплати</dt><dd className="mt-1">{payment.dueDate.toLocaleDateString("uk-UA")}</dd></div>
           <div><dt className="text-sm text-slate-500">Дата оплати</dt><dd className="mt-1">{payment.paidAt?.toLocaleDateString("uk-UA") || "—"}</dd></div>
           <div><dt className="text-sm text-slate-500">Хостел</dt><dd className="mt-1">{payment.resident.bed?.room.hostel.name || "—"}</dd></div>

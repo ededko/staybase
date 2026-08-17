@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { requireWorkspace } from "@/lib/session";
 
 type Props = {
   params: Promise<{
@@ -10,16 +11,36 @@ type Props = {
 
 export default async function HostelPage({ params }: Props) {
   const { id } = await params;
+  const { workspace } = await requireWorkspace();
 
-  const hostel = await prisma.hostel.findUnique({
+  const hostel = await prisma.hostel.findFirst({
     where: {
       id: Number(id),
+      workspaceId: workspace.id,
+    },
+    include: {
+      rooms: {
+        include: {
+          beds: {
+            select: {
+              id: true,
+              resident: {
+                select: { id: true },
+              },
+            },
+          },
+        },
+      },
     },
   });
 
   if (!hostel) {
     notFound();
   }
+
+  const beds = hostel.rooms.flatMap((room) => room.beds);
+  const occupiedBeds = beds.filter((bed) => bed.resident).length;
+  const freeBeds = beds.length - occupiedBeds;
 
   return (
     <div className="p-8">
@@ -63,23 +84,23 @@ export default async function HostelPage({ params }: Props) {
       <div className="mt-8 grid gap-6 md:grid-cols-4">
         <div className="rounded-2xl border bg-white p-6 shadow-sm">
           <p className="text-slate-500">Кімнат</p>
-          <h2 className="mt-3 text-4xl font-bold">12</h2>
+          <h2 className="mt-3 text-4xl font-bold">{hostel.rooms.length}</h2>
         </div>
 
         <div className="rounded-2xl border bg-white p-6 shadow-sm">
           <p className="text-slate-500">Ліжок</p>
-          <h2 className="mt-3 text-4xl font-bold">42</h2>
+          <h2 className="mt-3 text-4xl font-bold">{beds.length}</h2>
         </div>
 
         <div className="rounded-2xl border bg-white p-6 shadow-sm">
           <p className="text-slate-500">Мешканців</p>
-          <h2 className="mt-3 text-4xl font-bold">39</h2>
+          <h2 className="mt-3 text-4xl font-bold">{occupiedBeds}</h2>
         </div>
 
         <div className="rounded-2xl border bg-white p-6 shadow-sm">
           <p className="text-slate-500">Вільно</p>
           <h2 className="mt-3 text-4xl font-bold text-green-600">
-            3
+            {freeBeds}
           </h2>
         </div>
       </div>

@@ -2,15 +2,15 @@
 
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
+import { requireWorkspace } from "@/lib/session";
 
 export async function deleteResident(formData: FormData) {
+  const { workspace } = await requireWorkspace();
   const residentId = Number(formData.get("residentId"));
 
-  await prisma.resident.delete({
-    where: {
-      id: residentId,
-    },
-  });
+  const resident = await prisma.resident.findFirst({ where: { id: residentId, workspaceId: workspace.id } });
+  if (!resident) throw new Error("Мешканця не знайдено");
+  await prisma.resident.delete({ where: { id: resident.id } });
 
   redirect(
     `/hostels/${formData.get("hostelId")}/rooms/${formData.get(
