@@ -9,6 +9,8 @@ export type ResidentInput = {
   notes: string;
   checkIn: Date;
   checkOut: Date | null;
+  birthDate: Date | null;
+  gender: "MALE" | "FEMALE" | "OTHER" | null;
 };
 
 export function getResidentStatus(resident: {
@@ -35,6 +37,8 @@ function residentData(input: ResidentInput) {
     notes: input.notes.trim() || null,
     checkIn: input.checkIn,
     checkOut: input.checkOut,
+    birthDate: input.birthDate,
+    gender: input.gender,
   };
 }
 

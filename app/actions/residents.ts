@@ -16,6 +16,11 @@ function residentInput(formData: FormData) {
   const checkOut = formData.get("checkOut")
     ? new Date(String(formData.get("checkOut")))
     : null;
+  const birthDate = formData.get("birthDate") ? new Date(String(formData.get("birthDate"))) : null;
+  const genderValue = String(formData.get("gender") || "");
+  const gender = ["MALE", "FEMALE", "OTHER"].includes(genderValue)
+    ? (genderValue as "MALE" | "FEMALE" | "OTHER")
+    : null;
 
   if (
     !firstName ||
@@ -23,6 +28,7 @@ function residentInput(formData: FormData) {
     Number.isNaN(checkIn.getTime()) ||
     (checkOut && Number.isNaN(checkOut.getTime())) ||
     (checkOut && checkOut < checkIn)
+    || (birthDate && Number.isNaN(birthDate.getTime()))
   ) {
     throw new Error("Некоректні дані мешканця");
   }
@@ -35,6 +41,8 @@ function residentInput(formData: FormData) {
     notes: String(formData.get("notes") || ""),
     checkIn,
     checkOut,
+    birthDate,
+    gender,
   };
 }
 

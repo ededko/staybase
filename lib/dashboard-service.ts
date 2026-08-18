@@ -34,6 +34,8 @@ export async function getDashboardData(workspaceId: string, now = new Date()) {
     upcomingPayments,
     monthlyIncome,
     depositsHeld,
+    hostels,
+    residentDemographics,
   ] = await Promise.all([
     prisma.hostel.count({ where: { workspaceId } }),
     prisma.room.count({ where: { hostel: { workspaceId } } }),
@@ -65,7 +67,35 @@ export async function getDashboardData(workspaceId: string, now = new Date()) {
       where: { paid: true, type: "DEPOSIT", resident: { workspaceId } },
       _sum: { amount: true },
     }),
+    prisma.hostel.findMany({
+      where: { workspaceId },
+      include: { rooms: { include: { beds: { where: { isDisabled: false }, include: { resident: { select: { isActive: true } } } } } } },
+      orderBy: { name: "asc" },
+    }),
+    prisma.resident.findMany({
+      where: { workspaceId, isActive: true },
+      select: { gender: true, birthDate: true },
+    }),
   ]);
+
+  const hostelOccupancy = hostels.map((hostel) => {
+    const beds = hostel.rooms.flatMap((room) => room.beds);
+    const occupied = beds.filter((bed) => bed.resident?.isActive).length;
+    return {
+      id: hostel.id,
+      name: hostel.name,
+      address: hostel.address,
+      rooms: hostel.rooms.length,
+      beds: beds.length,
+      occupied,
+      free: beds.length - occupied,
+      percentage: beds.length ? Math.round((occupied / beds.length) * 100) : 0,
+    };
+  });
+
+  const ages = residentDemographics.flatMap((resident) => resident.birthDate
+    ? [Math.max(0, now.getFullYear() - resident.birthDate.getFullYear() - (now < new Date(now.getFullYear(), resident.birthDate.getMonth(), resident.birthDate.getDate()) ? 1 : 0))]
+    : []);
 
   return {
     totalHostels,
@@ -89,5 +119,12 @@ export async function getDashboardData(workspaceId: string, now = new Date()) {
     depositsHeld: Number(depositsHeld._sum.amount || 0),
     overduePayments,
     upcomingPayments,
+    hostelOccupancy,
+    demographics: {
+      male: residentDemographics.filter((item) => item.gender === "MALE").length,
+      female: residentDemographics.filter((item) => item.gender === "FEMALE").length,
+      unspecified: residentDemographics.filter((item) => !item.gender || item.gender === "OTHER").length,
+      averageAge: ages.length ? Math.round(ages.reduce((sum, age) => sum + age, 0) / ages.length) : null,
+    },
   };
 }

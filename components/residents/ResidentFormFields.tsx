@@ -20,6 +20,8 @@ type ResidentValues = {
   checkIn: string;
   checkOut: string;
   bedId?: number | null;
+  birthDate?: string;
+  gender?: "MALE" | "FEMALE" | "OTHER" | null;
 };
 
 type Props = {
@@ -48,6 +50,11 @@ export default function ResidentFormFields({ beds, resident }: Props) {
       <div className="grid gap-4 md:grid-cols-2">
         <input name="firstName" required defaultValue={resident?.firstName ?? ""} placeholder="Ім’я" className="w-full rounded-lg border p-3" />
         <input name="lastName" required defaultValue={resident?.lastName ?? ""} placeholder="Прізвище" className="w-full rounded-lg border p-3" />
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <div><label className="mb-1 block text-sm text-slate-600">Дата народження</label><input type="date" name="birthDate" defaultValue={resident?.birthDate ?? ""} className="w-full rounded-lg border p-3" /></div>
+        <div><label className="mb-1 block text-sm text-slate-600">Стать</label><select name="gender" defaultValue={resident?.gender ?? ""} className="w-full rounded-lg border p-3"><option value="">Не вказано</option><option value="MALE">Чоловік</option><option value="FEMALE">Жінка</option><option value="OTHER">Інше</option></select></div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">

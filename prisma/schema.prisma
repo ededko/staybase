@@ -165,6 +165,8 @@ model Resident {
   notes       String?
   checkIn     DateTime
   checkOut    DateTime?
+  birthDate   DateTime?
+  gender      Gender?
 
   // Нові поля
   isActive    Boolean   @default(true)
@@ -183,6 +185,12 @@ model Resident {
   stays       Stay[]
 
   @@index([workspaceId])
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
 }
 
 model Stay {

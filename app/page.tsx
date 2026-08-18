@@ -23,60 +23,78 @@ export default async function Home() {
   const { workspace } = await requireWorkspace();
   const dashboard = await getDashboardData(workspace.id);
   const metrics = [
-    { label: "Хостелів", value: dashboard.totalHostels },
-    { label: "Кімнат", value: dashboard.totalRooms },
-    { label: "Активних ліжок", value: dashboard.totalBeds },
-    { label: "Зайнято", value: dashboard.occupiedBeds },
-    { label: "Вільно", value: dashboard.freeBeds },
-    { label: "Завантаженість", value: `${dashboard.occupancyPercentage}%` },
-    { label: "Активних мешканців", value: dashboard.activeResidents },
+    { label: "Хостели", value: dashboard.totalHostels, icon: "⌂" },
+    { label: "Кімнати", value: dashboard.totalRooms, icon: "▦" },
+    { label: "Усі ліжка", value: dashboard.totalBeds, icon: "▱" },
+    { label: "Зайнято", value: dashboard.occupiedBeds, icon: "●" },
+    { label: "Вільно", value: dashboard.freeBeds, icon: "○" },
+    { label: "Завантаженість", value: `${dashboard.occupancyPercentage}%`, icon: "◔" },
+    { label: "Мешканці", value: dashboard.activeResidents, icon: "♙" },
     {
       label: "Прострочений борг",
       value: `${dashboard.overdueAmount.toFixed(2)} zł`,
-      accent: "text-red-600",
+      accent: "danger",
+      icon: "!",
     },
     {
       label: "До сплати за 7 днів",
       value: `${dashboard.upcomingAmount.toFixed(2)} zł`,
-      accent: "text-amber-600",
+      accent: "warning",
+      icon: "↗",
     },
     {
       label: "Отримано цього місяця",
       value: `${dashboard.monthlyIncome.toFixed(2)} zł`,
-      accent: "text-green-600",
+      accent: "success",
+      icon: "+",
     },
     {
       label: "Отримані застави",
       value: `${dashboard.depositsHeld.toFixed(2)} zł`,
-      accent: "text-blue-600",
+      accent: "info",
+      icon: "◇",
     },
   ];
 
   return (
-    <main className="p-4 sm:p-6 lg:p-8">
-      <div className="flex flex-wrap items-end justify-between gap-4">
+    <main className="dashboard-page p-4 sm:p-6 lg:p-8">
+      <div className="dashboard-hero flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-bold text-slate-800">Dashboard</h1>
-          <p className="mt-2 text-slate-500">Поточний стан хостелів і платежів</p>
+          <p className="eyebrow">ОГЛЯД СЬОГОДНІ</p>
+          <h1 className="text-4xl font-bold">Все під контролем</h1>
+          <p className="mt-2 text-slate-500">Хостели, мешканці та платежі в одному місці</p>
         </div>
         <Link
           href="/payments/new"
-          className="rounded-xl bg-slate-900 px-5 py-3 text-white hover:bg-slate-800"
+          className="primary-action rounded-xl px-5 py-3 font-semibold"
         >
           + Додати платіж
         </Link>
       </div>
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="metrics-grid mt-6 grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-4">
         {metrics.map((metric) => (
-          <div key={metric.label} className="rounded-2xl border bg-white p-5 shadow-sm">
-            <p className="text-sm text-slate-500">{metric.label}</p>
-            <p className={`mt-2 text-3xl font-bold ${metric.accent || ""}`}>
-              {metric.value}
-            </p>
+          <div key={metric.label} className={`metric-card ${metric.accent || ""}`}>
+            <div><p className="metric-label">{metric.label}</p><p className="metric-value">{metric.value}</p></div>
+            <span className="metric-icon">{metric.icon}</span>
           </div>
         ))}
       </div>
+
+      <section className="mt-8">
+        <div className="section-heading"><div><p className="eyebrow">ОБ’ЄКТИ</p><h2>Завантаженість хостелів</h2></div><Link href="/hostels">Переглянути всі →</Link></div>
+        <div className="hostel-occupancy-grid mt-4">
+          {dashboard.hostelOccupancy.map((hostel) => <Link href={`/hostels/${hostel.id}`} key={hostel.id} className="occupancy-card">
+            <div className={`house-visual ${occupancyTone(hostel.percentage)}`}><HouseIcon /><span>{hostel.percentage}%</span></div>
+            <div className="min-w-0 flex-1"><h3>{hostel.name}</h3><p>{hostel.address}</p><div className="occupancy-bar"><i style={{ width: `${hostel.percentage}%` }} /></div><div className="occupancy-meta"><span>{hostel.occupied} зайнято</span><span>{hostel.free} вільно</span></div></div>
+          </Link>)}
+        </div>
+      </section>
+
+      <section className="demographics-card mt-8">
+        <div><p className="eyebrow">МЕШКАНЦІ</p><h2>Хто зараз проживає</h2><p>Статистика заповнюватиметься з анкет мешканців</p></div>
+        <div className="demographics-stats"><div><b>{dashboard.demographics.male}</b><span>Чоловіки</span></div><div><b>{dashboard.demographics.female}</b><span>Жінки</span></div><div><b>{dashboard.demographics.averageAge ?? "—"}</b><span>Середній вік</span></div><div><b>{dashboard.demographics.unspecified}</b><span>Не вказано</span></div></div>
+      </section>
 
       <div className="mt-8 grid gap-6 xl:grid-cols-2">
         <PaymentTable
@@ -93,6 +111,12 @@ export default async function Home() {
       </div>
     </main>
   );
+}
+
+function occupancyTone(value: number) { return value >= 80 ? "full" : value >= 40 ? "medium" : "low"; }
+
+function HouseIcon() {
+  return <svg viewBox="0 0 96 96" aria-hidden="true"><path d="M12 43 48 13l36 30v39a7 7 0 0 1-7 7H19a7 7 0 0 1-7-7V43Z" fill="currentColor" opacity=".16"/><path d="m8 45 40-33 40 33M18 39v43h60V39M39 82V58h18v24" fill="none" stroke="currentColor" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round"/><path d="M26 50h10v10H26zm34 0h10v10H60z" fill="currentColor"/></svg>;
 }
 
 type DashboardPayment = Awaited<ReturnType<typeof getDashboardData>>["overduePayments"][number];

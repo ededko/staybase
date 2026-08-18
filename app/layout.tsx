@@ -31,6 +31,7 @@ export default async function RootLayout({
   return (
     <html
       lang="uk"
+      suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable}`}
     >
       <body className="bg-slate-100">

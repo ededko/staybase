@@ -21,6 +21,8 @@ export async function createResident(formData: FormData) {
       checkOut: formData.get("checkOut")
         ? new Date(String(formData.get("checkOut")))
         : null,
+      birthDate: null,
+      gender: null,
     },
     { workspaceId: workspace.id, hostelId, roomId, bedId }
   );

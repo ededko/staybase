@@ -1,5 +1,6 @@
 
 import SignOutButton from "@/components/auth/SignOutButton";
+import ThemeToggle from "@/components/ThemeToggle";
 
 export default function Header({ userName, onMenuOpen }: { userName: string; onMenuOpen: () => void }) {
   return (
@@ -10,6 +11,7 @@ export default function Header({ userName, onMenuOpen }: { userName: string; onM
       </div>
       <div className="flex shrink-0 items-center gap-2 sm:gap-3">
         <span className="hidden text-sm text-slate-600 sm:inline">{userName}</span>
+        <ThemeToggle />
         <SignOutButton />
       </div>
     </header>

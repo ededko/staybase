@@ -57,6 +57,8 @@ export default async function EditResidentPage({ params }: Props) {
             checkIn: formatDate(resident.checkIn),
             checkOut: formatDate(resident.checkOut),
             bedId: resident.bedId,
+            birthDate: formatDate(resident.birthDate),
+            gender: resident.gender,
           }}
         />
         <button className="rounded-lg bg-slate-900 px-5 py-3 text-white hover:bg-slate-800">Зберегти зміни</button>
