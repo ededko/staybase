@@ -10,7 +10,7 @@ export default function CreateHostelButton() {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="rounded-xl bg-slate-900 px-5 py-3 font-medium text-white hover:bg-slate-800"
+        className="primary-action rounded-xl px-5 py-3 font-semibold text-white"
       >
         + Додати хостел
       </button>

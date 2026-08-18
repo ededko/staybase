@@ -31,8 +31,8 @@ export default function HostelCard({ hostel }: Props) {
 );
 
   return (
-    <div className="rounded-2xl border bg-white p-6 shadow-sm">
-      <div className="flex items-center justify-between">
+    <div className="hostel-card rounded-2xl border bg-white shadow-sm">
+      <div className="hostel-card-header flex items-center justify-between gap-3">
         <div>
           <h2 className="text-2xl font-bold">{hostel.name}</h2>
 
@@ -43,14 +43,14 @@ export default function HostelCard({ hostel }: Props) {
 
         <Link
           href={`/hostels/${hostel.id}`}
-          className="rounded-lg bg-slate-900 px-4 py-2 text-white hover:bg-slate-800"
+          className="hostel-card-action rounded-xl px-4 py-2"
         >
           Відкрити
         </Link>
       </div>
 
-      <div className="mt-6 grid grid-cols-3 gap-4">
-        <div className="rounded-xl bg-slate-50 p-4">
+      <div className="hostel-card-stats grid grid-cols-3">
+        <div className="hostel-card-stat rounded-xl bg-slate-50">
           <p className="text-sm text-slate-500">Ліжок</p>
 
           <p className="mt-2 text-3xl font-bold">
@@ -58,7 +58,7 @@ export default function HostelCard({ hostel }: Props) {
           </p>
         </div>
 
-        <div className="rounded-xl bg-slate-50 p-4">
+        <div className="hostel-card-stat rounded-xl bg-slate-50">
           <p className="text-sm text-slate-500">Зайнято</p>
 
           <p className="mt-2 text-3xl font-bold text-blue-600">
@@ -66,7 +66,7 @@ export default function HostelCard({ hostel }: Props) {
           </p>
         </div>
 
-        <div className="rounded-xl bg-slate-50 p-4">
+        <div className="hostel-card-stat rounded-xl bg-slate-50">
           <p className="text-sm text-slate-500">Вільно</p>
 
           <p className="mt-2 text-3xl font-bold text-green-600">

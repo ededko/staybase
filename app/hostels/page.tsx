@@ -39,7 +39,7 @@ export default async function HostelsPage() {
         <CreateHostelButton />
       </div>
 
-      <div className="mt-8 grid gap-6">
+      <div className="hostel-list mt-8 grid">
         {hostels.length === 0 ? (
           <div className="rounded-2xl border border-dashed p-10 text-center text-slate-500">
             Поки що немає жодного хостелу.
