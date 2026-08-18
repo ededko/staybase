@@ -2,10 +2,10 @@
 
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
-import { requireWorkspace } from "@/lib/session";
+import { requirePermission } from "@/lib/session";
 
 export async function deleteResident(formData: FormData) {
-  const { workspace } = await requireWorkspace();
+  const { workspace } = await requirePermission("RESIDENTS_EDIT");
   const residentId = Number(formData.get("residentId"));
 
   const resident = await prisma.resident.findFirst({ where: { id: residentId, workspaceId: workspace.id } });

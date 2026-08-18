@@ -22,6 +22,8 @@ type ResidentValues = {
   bedId?: number | null;
   birthDate?: string;
   gender?: "MALE" | "FEMALE" | "OTHER" | null;
+  monthlyRent?: string;
+  paymentDueDay?: number | null;
 };
 
 type Props = {
@@ -50,6 +52,11 @@ export default function ResidentFormFields({ beds, resident }: Props) {
       <div className="grid gap-4 md:grid-cols-2">
         <input name="firstName" required defaultValue={resident?.firstName ?? ""} placeholder="Ім’я" className="w-full rounded-lg border p-3" />
         <input name="lastName" required defaultValue={resident?.lastName ?? ""} placeholder="Прізвище" className="w-full rounded-lg border p-3" />
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <div><label className="mb-1 block text-sm text-slate-600">Місячна оренда, zł</label><input type="number" name="monthlyRent" min="0" step="0.01" defaultValue={resident?.monthlyRent ?? ""} className="w-full rounded-lg border p-3" /></div>
+        <div><label className="mb-1 block text-sm text-slate-600">День щомісячної оплати</label><input type="number" name="paymentDueDay" min="1" max="31" defaultValue={resident?.paymentDueDay ?? ""} placeholder="Наприклад, 10" className="w-full rounded-lg border p-3" /></div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">

@@ -1,6 +1,7 @@
 import { createLeadApplication, updateLeadStatus } from "@/app/actions/applications";
 import { prisma } from "@/lib/prisma";
 import { requireWorkspace } from "@/lib/session";
+import Link from "next/link";
 
 const statusLabels: Record<string, string> = {
   NEW: "Новий", CONTACTED: "Зв’язались", VIEWING: "Перегляд", CONFIRMED: "Підтверджено", MOVED_IN: "Заселено", REJECTED: "Відмова",
@@ -39,7 +40,7 @@ export default async function ApplicationsPage() {
         <div className="operation-card-top"><div><span className={`status-pill status-${item.status.toLowerCase()}`}>{statusLabels[item.status]}</span><h3>{item.fullName}</h3><p>{item.phone} · {sourceLabels[item.source] || item.source}</p></div><b>{item.peopleCount} ос.</b></div>
         <div className="operation-meta"><span>🏢 {item.hostel?.name || "Хостел не вибрано"}</span><span>📅 {item.desiredMoveIn?.toLocaleDateString("uk-UA") || "Дата не вказана"}</span><span>⏳ {item.stayMonths ? `${item.stayMonths} міс.` : "Термін не вказано"}</span></div>
         {item.notes && <p className="operation-description">{item.notes}</p>}
-        <form action={updateLeadStatus} className="status-form"><input type="hidden" name="id" value={item.id} /><select name="status" defaultValue={item.status}>{Object.entries(statusLabels).map(([value,label]) => <option key={value} value={value}>{label}</option>)}</select><button>Змінити</button></form>
+        <Link href={`/residents/new?applicationId=${item.id}`} className="mt-3 inline-block rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white">Заселити</Link><form action={updateLeadStatus} className="status-form"><input type="hidden" name="id" value={item.id} /><select name="status" defaultValue={item.status}>{Object.entries(statusLabels).map(([value,label]) => <option key={value} value={value}>{label}</option>)}</select><button>Змінити</button></form>
       </article>)}{applications.length === 0 && <Empty text="Поки немає запитів на заселення." />}</div>
     </section>
   </main>;

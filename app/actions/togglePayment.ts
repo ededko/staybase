@@ -2,11 +2,11 @@
 
 import { togglePaymentRecord } from "@/lib/payment-service";
 import { redirect } from "next/navigation";
-import { requireWorkspace } from "@/lib/session";
+import { requirePermission } from "@/lib/session";
 import { recordAudit } from "@/lib/audit";
 
 export async function togglePayment(formData: FormData) {
-  const { workspace, session } = await requireWorkspace();
+  const { workspace, session } = await requirePermission("PAYMENTS_EDIT");
   const paymentId = Number(formData.get("paymentId"));
   const hostelId = String(formData.get("hostelId"));
   const roomId = String(formData.get("roomId"));

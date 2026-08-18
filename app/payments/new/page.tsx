@@ -2,12 +2,13 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { createPaymentFromForm } from "@/app/actions/payments";
 import { requireWorkspace } from "@/lib/session";
+import ResidentPaymentPicker from "@/components/payments/ResidentPaymentPicker";
 
 export default async function NewPaymentPage({ searchParams }: { searchParams: Promise<{ residentId?: string }> }) {
   const { residentId } = await searchParams;
   const { workspace } = await requireWorkspace();
   const residents = await prisma.resident.findMany({
-    where: { workspaceId: workspace.id },
+    where: { workspaceId: workspace.id, isActive: true },
     include: {
       bed: {
         include: {
@@ -19,6 +20,8 @@ export default async function NewPaymentPage({ searchParams }: { searchParams: P
     },
     orderBy: [{ isActive: "desc" }, { lastName: "asc" }, { firstName: "asc" }],
   });
+  const hostels = await prisma.hostel.findMany({ where: { workspaceId: workspace.id }, select: { id:true,name:true }, orderBy:{name:"asc"} });
+  const residentOptions = residents.map((resident) => ({ id:resident.id, name:`${resident.lastName} ${resident.firstName}`, phone:resident.phone||"", hostelId:resident.bed?.room.hostelId||null, hostelName:resident.bed?.room.hostel.name||"Без хостела", roomName:resident.bed?.room.name||"Без кімнати", bedNumber:resident.bed?.number||null, paidThrough:resident.paidThrough?.toLocaleDateString("uk-UA")||"" }));
 
   return (
     <div className="max-w-2xl p-4 sm:p-6 lg:p-8">
@@ -26,17 +29,7 @@ export default async function NewPaymentPage({ searchParams }: { searchParams: P
       <h1 className="mt-6 text-4xl font-bold text-slate-800">Додати платіж</h1>
 
       <form action={createPaymentFromForm} className="mt-8 space-y-4 rounded-2xl border bg-white p-6 shadow-sm">
-        <div>
-          <label className="mb-1 block text-sm text-slate-600">Мешканець</label>
-          <select name="residentId" required defaultValue={residentId || ""} className="w-full rounded-lg border p-3">
-            <option value="">Оберіть мешканця</option>
-            {residents.map((resident) => (
-              <option key={resident.id} value={resident.id}>
-                {resident.firstName} {resident.lastName}{resident.bed ? ` — ${resident.bed.room.hostel.name}, ${resident.bed.room.name}` : ""}
-              </option>
-            ))}
-          </select>
-        </div>
+        <ResidentPaymentPicker residents={residentOptions} hostels={hostels} initialId={residentId || ""} />
 
         <div>
           <label className="mb-1 block text-sm text-slate-600">Тип платежу</label>

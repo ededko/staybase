@@ -52,6 +52,7 @@ export default function CreateHostelModal({
               placeholder="Адреса"
               className="w-full rounded-xl border p-3"
             />
+            <input name="city" placeholder="Місто" className="w-full rounded-xl border p-3" />
           </div>
 
           {state?.error && (

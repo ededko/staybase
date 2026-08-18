@@ -1,16 +1,17 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { requireWorkspace } from "@/lib/session";
+import { requirePermission } from "@/lib/session";
 import { revalidatePath } from "next/cache";
 
 export async function createHostel(
   _prevState: unknown,
   formData: FormData
 ) {
-  const { workspace } = await requireWorkspace();
+  const { workspace } = await requirePermission("HOSTELS_CREATE");
   const name = formData.get("name")?.toString().trim();
   const address = formData.get("address")?.toString().trim();
+  const city = formData.get("city")?.toString().trim();
 
   if (!name) {
     return { error: "Назва обов'язкова" };
@@ -20,6 +21,7 @@ export async function createHostel(
     data: {
       name,
       address: address || "",
+      city: city || null,
       workspaceId: workspace.id,
     },
   });

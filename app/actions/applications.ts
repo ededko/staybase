@@ -4,13 +4,13 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { LeadStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { requireWorkspace } from "@/lib/session";
+import { requirePermission } from "@/lib/session";
 import { recordAudit } from "@/lib/audit";
 
 const leadStatuses = new Set(Object.values(LeadStatus));
 
 export async function createLeadApplication(formData: FormData) {
-  const { workspace, session } = await requireWorkspace();
+  const { workspace, session } = await requirePermission("APPLICATIONS_CREATE");
   const fullName = String(formData.get("fullName") || "").trim();
   const phone = String(formData.get("phone") || "").trim();
   const hostelId = Number(formData.get("hostelId")) || null;
@@ -49,7 +49,7 @@ export async function createLeadApplication(formData: FormData) {
 }
 
 export async function updateLeadStatus(formData: FormData) {
-  const { workspace, session } = await requireWorkspace();
+  const { workspace, session } = await requirePermission("APPLICATIONS_EDIT");
   const id = Number(formData.get("id"));
   const status = String(formData.get("status")) as LeadStatus;
   if (!id || !leadStatuses.has(status)) throw new Error("Некоректний статус");

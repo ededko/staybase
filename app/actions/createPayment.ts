@@ -3,10 +3,10 @@
 import { createPaymentRecord } from "@/lib/payment-service";
 import { redirect } from "next/navigation";
 import { PaymentMethod, PaymentType } from "@prisma/client";
-import { requireWorkspace } from "@/lib/session";
+import { requirePermission } from "@/lib/session";
 
 export async function createPayment(formData: FormData) {
-  const { workspace } = await requireWorkspace();
+  const { workspace } = await requirePermission("PAYMENTS_CREATE");
   const residentId = Number(formData.get("residentId"));
   const hostelId = String(formData.get("hostelId"));
   const roomId = String(formData.get("roomId"));

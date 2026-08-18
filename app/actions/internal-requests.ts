@@ -3,7 +3,7 @@
 import { InternalRequestCategory, InternalRequestStatus, TicketPriority } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { requireWorkspace } from "@/lib/session";
+import { requirePermission } from "@/lib/session";
 import { recordAudit } from "@/lib/audit";
 
 const categories = new Set(Object.values(InternalRequestCategory));
@@ -20,7 +20,7 @@ async function readAttachment(formData: FormData) {
 }
 
 export async function createInternalRequest(formData: FormData) {
-  const { workspace, session } = await requireWorkspace();
+  const { workspace, session } = await requirePermission("REQUESTS_CREATE");
   const title = String(formData.get("title") || "").trim();
   const description = String(formData.get("description") || "").trim();
   const category = String(formData.get("category")) as InternalRequestCategory;
@@ -58,8 +58,7 @@ export async function createInternalRequest(formData: FormData) {
 }
 
 export async function updateInternalRequest(formData: FormData) {
-  const { workspace, session, role } = await requireWorkspace();
-  if (role === "STAFF") throw new Error("Змінювати статус може адміністратор");
+  const { workspace, session } = await requirePermission("REQUESTS_EDIT");
   const id = Number(formData.get("id"));
   const status = String(formData.get("status")) as InternalRequestStatus;
   if (!id || !statuses.has(status)) throw new Error("Некоректні дані");
@@ -77,6 +76,7 @@ export async function updateInternalRequest(formData: FormData) {
       completedAt: status === "DONE" ? new Date() : null,
     },
   });
+  if (assignedToUserId) await prisma.notification.create({data:{workspaceId:workspace.id,userId:assignedToUserId,title:"Вам призначено внутрішню заявку",message:`Заявка #${id}`,href:"/internal-requests"}});
   if (updated.count) await recordAudit({ workspaceId: workspace.id, actor: session.user, action: "INTERNAL_REQUEST_UPDATED", entityType: "InternalRequest", entityId: id, summary: `Змінив(ла) статус внутрішньої заявки #${id} на ${status}` });
   revalidatePath("/internal-requests");
   revalidatePath("/");

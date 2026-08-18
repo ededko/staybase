@@ -3,11 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { deleteRoomRecord, updateRoomRecord } from "@/lib/room-service";
-import { requireWorkspace } from "@/lib/session";
+import { requirePermission } from "@/lib/session";
 import { recordAudit } from "@/lib/audit";
 
 export async function updateRoom(formData: FormData) {
-  const { workspace, session } = await requireWorkspace();
+  const { workspace, session } = await requirePermission("ROOMS_EDIT");
   const roomId = Number(formData.get("roomId"));
   const hostelId = Number(formData.get("hostelId"));
   const name = String(formData.get("name")).trim();
@@ -26,7 +26,7 @@ export async function updateRoom(formData: FormData) {
 }
 
 export async function deleteRoom(formData: FormData) {
-  const { workspace } = await requireWorkspace();
+  const { workspace, session } = await requirePermission("ROOMS_DELETE");
   const roomId = Number(formData.get("roomId"));
   const hostelId = Number(formData.get("hostelId"));
   const result = await deleteRoomRecord(workspace.id, roomId);
@@ -34,6 +34,8 @@ export async function deleteRoom(formData: FormData) {
   if (!result.deleted) {
     redirect(`/hostels/${hostelId}/rooms/${roomId}?error=${result.reason}`);
   }
+
+  await recordAudit({ workspaceId: workspace.id, actor: session.user, action: "ROOM_DELETED", entityType: "Room", entityId: roomId, summary: `Видалив(ла) кімнату #${roomId}` });
 
   revalidatePath(`/hostels/${hostelId}/rooms`);
   redirect(`/hostels/${hostelId}/rooms`);

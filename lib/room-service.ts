@@ -48,7 +48,7 @@ export async function updateRoomRecord(roomId: number, input: RoomInput) {
 
 export async function deleteRoomRecord(workspaceId: string, roomId: number) {
   return prisma.$transaction(async (tx) => {
-    const room = await tx.room.findUnique({
+    const room = await tx.room.findFirst({
       where: { id: roomId, hostel: { workspaceId } },
       include: {
         beds: {
@@ -56,6 +56,7 @@ export async function deleteRoomRecord(workspaceId: string, roomId: number) {
             resident: {
               select: { id: true },
             },
+            stays: { select: { id: true }, take: 1 },
           },
         },
       },
@@ -65,6 +66,10 @@ export async function deleteRoomRecord(workspaceId: string, roomId: number) {
 
     if (room.beds.some((bed) => bed.resident)) {
       return { deleted: false, reason: "occupied" as const };
+    }
+
+    if (room.beds.some((bed) => bed.stays.length > 0)) {
+      return { deleted: false, reason: "history" as const };
     }
 
     await tx.bed.deleteMany({ where: { roomId } });

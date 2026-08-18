@@ -4,13 +4,13 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { QualityStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { requireWorkspace } from "@/lib/session";
+import { requirePermission } from "@/lib/session";
 import { recordAudit } from "@/lib/audit";
 
 const statuses = new Set(Object.values(QualityStatus));
 
 export async function createQualityEntry(formData: FormData) {
-  const { workspace, session } = await requireWorkspace();
+  const { workspace, session } = await requirePermission("QUALITY_CREATE");
   const hostelId = Number(formData.get("hostelId")) || null;
   const roomId = Number(formData.get("roomId")) || null;
   const text = String(formData.get("text") || "").trim();
@@ -40,7 +40,7 @@ export async function createQualityEntry(formData: FormData) {
 }
 
 export async function updateQualityStatus(formData: FormData) {
-  const { workspace, session } = await requireWorkspace();
+  const { workspace, session } = await requirePermission("QUALITY_EDIT");
   const id = Number(formData.get("id"));
   const status = String(formData.get("status")) as QualityStatus;
   if (!id || !statuses.has(status)) throw new Error("Некоректний статус");

@@ -19,6 +19,7 @@ model User {
   accounts             Account[]
   workspaceMemberships WorkspaceMember[]
   auditLogs            AuditLog[]
+  notifications        Notification[]
 
   @@map("user")
 }
@@ -38,14 +39,17 @@ model Workspace {
   qualityEntries     QualityEntry[]
   internalRequests   InternalRequest[]
   auditLogs          AuditLog[]
+  notifications      Notification[]
 }
 
 model WorkspaceMember {
-  id          String        @id @default(cuid())
-  workspaceId String
-  userId      String
-  role        WorkspaceRole @default(ADMIN)
-  createdAt   DateTime      @default(now())
+  id                    String        @id @default(cuid())
+  workspaceId           String
+  userId                String
+  role                  WorkspaceRole @default(ADMIN)
+  permissions           String[]      @default([])
+  permissionsConfigured Boolean       @default(false)
+  createdAt             DateTime      @default(now())
 
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -61,12 +65,14 @@ enum WorkspaceRole {
 }
 
 model WorkspaceInvite {
-  id              String        @id @default(cuid())
-  workspaceId     String
-  email           String
-  invitedByUserId String
-  role            WorkspaceRole @default(ADMIN)
-  createdAt       DateTime      @default(now())
+  id                    String        @id @default(cuid())
+  workspaceId           String
+  email                 String
+  invitedByUserId       String
+  role                  WorkspaceRole @default(ADMIN)
+  permissions           String[]      @default([])
+  permissionsConfigured Boolean       @default(false)
+  createdAt             DateTime      @default(now())
 
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
@@ -194,11 +200,13 @@ model Resident {
   updatedAt   DateTime @updatedAt
   workspaceId String
 
-  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  bed         Bed?      @relation(fields: [bedId], references: [id])
-  payments    Payment[]
-  stays       Stay[]
-  paidThrough DateTime?
+  workspace     Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  bed           Bed?      @relation(fields: [bedId], references: [id])
+  payments      Payment[]
+  stays         Stay[]
+  paidThrough   DateTime?
+  monthlyRent   Decimal?
+  paymentDueDay Int?
 
   @@index([workspaceId])
 }
@@ -297,21 +305,22 @@ enum LeadStatus {
 }
 
 model MaintenanceTicket {
-  id            Int            @id @default(autoincrement())
-  workspaceId   String
-  hostelId      Int
-  roomId        Int?
-  category      String
-  description   String
-  photoUrl      String?
-  priority      TicketPriority @default(NORMAL)
-  status        TicketStatus   @default(NEW)
-  reporterName  String?
-  reporterPhone String?
-  assignedTo    String?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  completedAt   DateTime?
+  id               Int            @id @default(autoincrement())
+  workspaceId      String
+  hostelId         Int
+  roomId           Int?
+  category         String
+  description      String
+  photoUrl         String?
+  priority         TicketPriority @default(NORMAL)
+  status           TicketStatus   @default(NEW)
+  reporterName     String?
+  reporterPhone    String?
+  assignedTo       String?
+  assignedToUserId String?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  completedAt      DateTime?
 
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   hostel    Hostel    @relation(fields: [hostelId], references: [id], onDelete: Cascade)
@@ -319,6 +328,23 @@ model MaintenanceTicket {
 
   @@index([workspaceId, status])
   @@index([hostelId, roomId])
+}
+
+model Notification {
+  id          Int       @id @default(autoincrement())
+  workspaceId String
+  userId      String
+  title       String
+  message     String
+  href        String?
+  readAt      DateTime?
+  createdAt   DateTime  @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt, createdAt])
+  @@index([workspaceId, createdAt])
 }
 
 enum TicketPriority {

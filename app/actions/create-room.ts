@@ -2,11 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { createRoomWithBeds } from "@/lib/room-service";
-import { requireWorkspace } from "@/lib/session";
+import { requirePermission } from "@/lib/session";
 import { recordAudit } from "@/lib/audit";
 
 export async function createRoom(_: unknown, formData: FormData) {
-  const { workspace, session } = await requireWorkspace();
+  const { workspace, session } = await requirePermission("ROOMS_CREATE");
   const hostelId = Number(formData.get("hostelId"));
   const name = String(formData.get("name")).trim();
   const floor = Number(formData.get("floor"));

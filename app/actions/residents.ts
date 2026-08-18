@@ -7,8 +7,10 @@ import {
   createResidentWithAssignment,
   updateResidentWithAssignment,
 } from "@/lib/resident-service";
-import { requireWorkspace } from "@/lib/session";
+import { requirePermission } from "@/lib/session";
 import { recordAudit } from "@/lib/audit";
+import { createPaymentRecord } from "@/lib/payment-service";
+import { PaymentMethod, PaymentType } from "@prisma/client";
 
 function residentInput(formData: FormData) {
   const firstName = String(formData.get("firstName")).trim();
@@ -22,6 +24,10 @@ function residentInput(formData: FormData) {
   const gender = ["MALE", "FEMALE", "OTHER"].includes(genderValue)
     ? (genderValue as "MALE" | "FEMALE" | "OTHER")
     : null;
+  const monthlyRentValue = String(formData.get("monthlyRent") || "").trim();
+  const monthlyRent = monthlyRentValue ? monthlyRentValue : null;
+  const dueDayValue = Number(formData.get("paymentDueDay"));
+  const paymentDueDay = Number.isInteger(dueDayValue) && dueDayValue >= 1 && dueDayValue <= 31 ? dueDayValue : checkIn.getDate();
 
   if (
     !firstName ||
@@ -44,6 +50,8 @@ function residentInput(formData: FormData) {
     checkOut,
     birthDate,
     gender,
+    monthlyRent,
+    paymentDueDay,
   };
 }
 
@@ -75,9 +83,21 @@ function revalidateResidentPages() {
 }
 
 export async function checkInResident(formData: FormData) {
-  const { workspace, session } = await requireWorkspace();
+  const { workspace, session } = await requirePermission("RESIDENTS_CREATE");
   const input = residentInput(formData);
   const resident = await createResidentWithAssignment(input, assignment(formData, workspace.id));
+  if (formData.get("createPayment") === "on") {
+    const amount = String(formData.get("paymentAmount") || "");
+    const dueDateValue = String(formData.get("paymentDueDate") || formData.get("checkIn"));
+    const typeValue = String(formData.get("paymentType") || "RENT") as PaymentType;
+    const methodValue = String(formData.get("paymentMethod") || "CASH") as PaymentMethod;
+    await createPaymentRecord({ workspaceId:workspace.id, residentId:resident.id, amount, dueDate:new Date(dueDateValue), notes:String(formData.get("paymentNotes")||""), type:Object.values(PaymentType).includes(typeValue)?typeValue:PaymentType.RENT, method:Object.values(PaymentMethod).includes(methodValue)?methodValue:PaymentMethod.CASH, paid:true, paidAt:new Date(), paidThrough:formData.get("paymentPaidThrough")?new Date(String(formData.get("paymentPaidThrough"))):null });
+  }
+  const applicationId = Number(formData.get("applicationId"));
+  if (applicationId) {
+    const { prisma } = await import("@/lib/prisma");
+    await prisma.leadApplication.updateMany({ where:{ id:applicationId, workspaceId:workspace.id }, data:{ status:"MOVED_IN" } });
+  }
   await recordAudit({ workspaceId: workspace.id, actor: session.user, action: "RESIDENT_CHECKED_IN", entityType: "Resident", entityId: resident.id, summary: `Заселив(ла) ${input.firstName} ${input.lastName}` });
 
   revalidateResidentPages();
@@ -85,7 +105,7 @@ export async function checkInResident(formData: FormData) {
 }
 
 export async function updateResidentDetails(formData: FormData) {
-  const { workspace, session } = await requireWorkspace();
+  const { workspace, session } = await requirePermission("RESIDENTS_EDIT");
   const residentId = Number(formData.get("residentId"));
 
   const input = residentInput(formData);
@@ -101,7 +121,7 @@ export async function updateResidentDetails(formData: FormData) {
 }
 
 export async function checkOutResident(formData: FormData) {
-  const { workspace, session } = await requireWorkspace();
+  const { workspace, session } = await requirePermission("RESIDENTS_CHECKOUT");
   const residentId = Number(formData.get("residentId"));
 
   await archiveResidentRecord(workspace.id, residentId);

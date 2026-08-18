@@ -58,6 +58,8 @@ export default async function RoomPage({ params, searchParams }: Props) {
           Кімнату не можна видалити, поки в ній є заселені мешканці.
         </p>
       )}
+      {error === "history" && <p className="mt-6 rounded-lg bg-amber-100 p-4 text-amber-800">Кімнату не можна видалити, бо з нею пов’язана історія проживання. Її можна перейменувати або більше не використовувати.</p>}
+      {error === "not-found" && <p className="mt-6 rounded-lg bg-red-100 p-4 text-red-700">Кімнату не знайдено або вона вже видалена.</p>}
 
       <div className="compact-stats mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
         <div className="compact-stat rounded-xl border bg-white"><p className="text-slate-500">Місткість</p><p className="mt-2 text-3xl font-bold">{activeBeds.length}</p></div>

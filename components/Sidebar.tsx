@@ -5,69 +5,85 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const menu = [
+  { name:"Сповіщення", href:"/notifications", icon:"🔔", permission:["REQUESTS_OWN","MAINTENANCE_ASSIGNED","MAINTENANCE_VIEW","REQUESTS_VIEW"] },
   {
     name: "Dashboard",
     href: "/",
     icon: "🏠",
+    permission: "DASHBOARD_VIEW",
   },
   {
     name: "Хостели",
     href: "/hostels",
     icon: "🏢",
+    permission: "HOSTELS_VIEW",
   },
   {
     name: "Кімнати",
     href: "/rooms",
     icon: "🛏️",
+    permission: "ROOMS_VIEW",
   },
   {
     name: "Внутрішні заявки",
     href: "/internal-requests",
     icon: "📋",
+    permission: ["REQUESTS_VIEW", "REQUESTS_OWN"],
   },
   {
     name: "Мешканці",
     href: "/residents",
     icon: "👤",
+    permission: "RESIDENTS_VIEW",
   },
   {
     name: "Платежі",
     href: "/payments",
     icon: "💳",
+    permission: "PAYMENTS_VIEW",
   },
   {
     name: "Команда",
     href: "/settings/team",
     icon: "👥",
+    permission: "TEAM_VIEW",
   },
   {
     name: "Заселення",
     href: "/applications",
     icon: "📝",
+    permission: "APPLICATIONS_VIEW",
   },
   {
     name: "Ремонти",
     href: "/maintenance",
     icon: "🛠️",
+    permission: ["MAINTENANCE_VIEW", "MAINTENANCE_ASSIGNED"],
   },
   {
     name: "Якість",
     href: "/quality",
     icon: "⭐",
+    permission: "QUALITY_VIEW",
   },
 ];
 
 export default function Sidebar({
   role,
+  permissions,
   mobile = false,
   onNavigate,
 }: {
   role?: "OWNER" | "ADMIN" | "STAFF";
+  permissions: string[];
   mobile?: boolean;
   onNavigate?: () => void;
 }) {
   const pathname = usePathname();
-  const visibleMenu = role === "STAFF" ? menu.filter((item) => item.href === "/internal-requests") : menu;
+  const visibleMenu = role === "OWNER" ? menu : menu.filter((item) => {
+    const required = Array.isArray(item.permission) ? item.permission : [item.permission];
+    return required.some((permission) => permissions.includes(permission));
+  });
 
   return (
     <aside className="sidebar flex h-full w-72 flex-col text-white md:w-64">

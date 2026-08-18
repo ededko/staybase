@@ -2,11 +2,11 @@
 
 import { redirect } from "next/navigation";
 import { archiveResidentRecord } from "@/lib/resident-service";
-import { requireWorkspace } from "@/lib/session";
+import { requirePermission } from "@/lib/session";
 import { recordAudit } from "@/lib/audit";
 
 export async function archiveResident(formData: FormData) {
-  const { workspace, session } = await requireWorkspace();
+  const { workspace, session } = await requirePermission("RESIDENTS_CHECKOUT");
   const residentId = Number(formData.get("residentId"));
   const hostelId = String(formData.get("hostelId"));
   const roomId = String(formData.get("roomId"));

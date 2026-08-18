@@ -11,6 +11,8 @@ export type ResidentInput = {
   checkOut: Date | null;
   birthDate: Date | null;
   gender: "MALE" | "FEMALE" | "OTHER" | null;
+  monthlyRent: string | null;
+  paymentDueDay: number | null;
 };
 
 export function getResidentStatus(resident: {
@@ -39,6 +41,8 @@ function residentData(input: ResidentInput) {
     checkOut: input.checkOut,
     birthDate: input.birthDate,
     gender: input.gender,
+    monthlyRent: input.monthlyRent,
+    paymentDueDay: input.paymentDueDay,
   };
 }
 

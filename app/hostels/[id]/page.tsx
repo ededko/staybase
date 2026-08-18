@@ -2,16 +2,19 @@ import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { requireWorkspace } from "@/lib/session";
+import { deleteHostel } from "@/app/actions/hostels";
 
 type Props = {
   params: Promise<{
     id: string;
-  }>;
+  }>; 
+  searchParams: Promise<{ error?: string }>;
 };
 
-export default async function HostelPage({ params }: Props) {
+export default async function HostelPage({ params, searchParams }: Props) {
   const { id } = await params;
-  const { workspace } = await requireWorkspace();
+  const { workspace, permissions } = await requireWorkspace();
+  const { error } = await searchParams;
 
   const hostel = await prisma.hostel.findFirst({
     where: {
@@ -80,6 +83,7 @@ export default async function HostelPage({ params }: Props) {
           </div>
         </div>
       </div>
+      {error === "not-empty" && <p className="mt-5 rounded-xl bg-red-100 p-4 text-red-700">Хостел не можна видалити, поки в ньому є кімнати або пов’язані заявки. Спочатку видаліть або перенесіть ці дані.</p>}
 
       <div className="compact-stats mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
         <div className="compact-stat rounded-2xl border bg-white shadow-sm">
@@ -104,6 +108,7 @@ export default async function HostelPage({ params }: Props) {
           </h2>
         </div>
       </div>
+      <div className="mt-8 flex flex-wrap gap-3 border-t pt-6">{permissions.includes("HOSTELS_EDIT")&&<Link href={`/hostels/${id}/edit`} className="rounded-lg bg-slate-900 px-4 py-2 text-white">Редагувати хостел</Link>}{permissions.includes("HOSTELS_DELETE")&&<form action={deleteHostel}><input type="hidden" name="hostelId" value={hostel.id}/><button className="rounded-lg bg-red-600 px-4 py-2 text-white">Видалити хостел</button></form>}</div>
     </div>
   );
 }

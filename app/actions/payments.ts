@@ -7,7 +7,7 @@ import {
   createPaymentRecord,
   updatePaymentRecord,
 } from "@/lib/payment-service";
-import { requireWorkspace } from "@/lib/session";
+import { requirePermission } from "@/lib/session";
 import { recordAudit } from "@/lib/audit";
 
 function optionalDate(value: FormDataEntryValue | null) {
@@ -46,7 +46,7 @@ function revalidatePaymentPages() {
 }
 
 export async function createPaymentFromForm(formData: FormData) {
-  const { workspace, session } = await requireWorkspace();
+  const { workspace, session } = await requirePermission("PAYMENTS_CREATE");
   const payment = await createPaymentRecord(formPaymentData(formData, workspace.id));
   await recordAudit({
     workspaceId: workspace.id,
@@ -63,7 +63,7 @@ export async function createPaymentFromForm(formData: FormData) {
 }
 
 export async function updatePaymentFromForm(formData: FormData) {
-  const { workspace, session } = await requireWorkspace();
+  const { workspace, session } = await requirePermission("PAYMENTS_EDIT");
   const paymentId = Number(formData.get("paymentId"));
   const payment = await updatePaymentRecord(paymentId, formPaymentData(formData, workspace.id));
   await recordAudit({

@@ -2,6 +2,7 @@ import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { cache } from "react";
+import { effectivePermissions, type Permission } from "@/lib/permissions";
 
 export const getCurrentSession = cache(async () => {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -34,5 +35,15 @@ export const requireWorkspace = cache(async () => {
     session,
     workspace: membership.workspace,
     role: membership.role,
+    membership,
+    permissions: effectivePermissions(membership),
   };
 });
+
+export async function requirePermission(permission: Permission) {
+  const context = await requireWorkspace();
+  if (!context.permissions.includes(permission)) {
+    throw new Error("У вас немає дозволу на цю дію");
+  }
+  return context;
+}

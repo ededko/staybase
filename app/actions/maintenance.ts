@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { TicketPriority, TicketStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { requireWorkspace } from "@/lib/session";
+import { requirePermission } from "@/lib/session";
 import { recordAudit } from "@/lib/audit";
 
 const statuses = new Set(Object.values(TicketStatus));
@@ -29,7 +29,7 @@ async function resolveLocation(hostelId: number, roomId: number | null) {
 }
 
 export async function createMaintenanceTicket(formData: FormData) {
-  const { workspace, session } = await requireWorkspace();
+  const { workspace, session } = await requirePermission("MAINTENANCE_CREATE");
   const hostelId = Number(formData.get("hostelId"));
   const roomId = Number(formData.get("roomId")) || null;
   const description = String(formData.get("description") || "").trim();
@@ -39,14 +39,19 @@ export async function createMaintenanceTicket(formData: FormData) {
   const location = await resolveLocation(hostelId, roomId);
   if (location.workspaceId !== workspace.id) throw new Error("Немає доступу");
   const photoUrl = await readPhoto(formData);
+  const assignedToUserId = String(formData.get("assignedToUserId") || "") || null;
+  const assignedMember = assignedToUserId ? await prisma.workspaceMember.findFirst({where:{workspaceId:workspace.id,userId:assignedToUserId},include:{user:true}}) : null;
+  if (assignedToUserId && !assignedMember) throw new Error("Працівника не знайдено");
 
   const ticket = await prisma.maintenanceTicket.create({ data: {
     workspaceId: workspace.id, hostelId, roomId, description, category, priority: priorityValue,
     photoUrl,
     reporterName: String(formData.get("reporterName") || "").trim() || null,
     reporterPhone: String(formData.get("reporterPhone") || "").trim() || null,
-    assignedTo: String(formData.get("assignedTo") || "").trim() || null,
+    assignedTo: assignedMember?.user.name || null,
+    assignedToUserId,
   }});
+  if (assignedMember) await prisma.notification.create({data:{workspaceId:workspace.id,userId:assignedMember.userId,title:"Нова ремонтна заявка",message:`${category}: ${description.slice(0,120)}`,href:"/maintenance"}});
   await recordAudit({ workspaceId: workspace.id, actor: session.user, action: "MAINTENANCE_CREATED", entityType: "MaintenanceTicket", entityId: ticket.id, summary: `Створив(ла) ремонтну заявку «${category}»` });
   revalidatePath("/maintenance");
   redirect("/maintenance?created=1");
@@ -73,7 +78,7 @@ export async function createPublicMaintenanceTicket(formData: FormData) {
 }
 
 export async function updateMaintenanceStatus(formData: FormData) {
-  const { workspace, session } = await requireWorkspace();
+  const { workspace, session } = await requirePermission("MAINTENANCE_EDIT");
   const id = Number(formData.get("id"));
   const status = String(formData.get("status")) as TicketStatus;
   if (!id || !statuses.has(status)) throw new Error("Некоректний статус");

@@ -4,7 +4,7 @@ import CreateHostelButton from "@/components/hostels/CreateHostelButton";
 import { requireWorkspace } from "@/lib/session";
 
 export default async function HostelsPage() {
-  const { workspace } = await requireWorkspace();
+  const { workspace, permissions } = await requireWorkspace();
   const hostels = await prisma.hostel.findMany({
     where: { workspaceId: workspace.id },
     include: {
@@ -36,7 +36,7 @@ export default async function HostelsPage() {
           </p>
         </div>
 
-        <CreateHostelButton />
+        {permissions.includes("HOSTELS_CREATE") && <CreateHostelButton />}
       </div>
 
       <div className="hostel-list mt-8 grid md:grid-cols-2 xl:grid-cols-3">

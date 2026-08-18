@@ -8,7 +8,7 @@ import {
   toggleBedDisabledRecord,
   updateBedRecord,
 } from "@/lib/bed-service";
-import { requireWorkspace } from "@/lib/session";
+import { requirePermission } from "@/lib/session";
 
 function bedInput(formData: FormData) {
   const hostelId = Number(formData.get("hostelId"));
@@ -60,7 +60,7 @@ function revalidateBedPages(hostelId: number, roomId: number, bedId?: number) {
 }
 
 export async function createBed(formData: FormData) {
-  const { workspace } = await requireWorkspace();
+  const { workspace } = await requirePermission("ROOMS_CREATE");
   const input = { ...bedInput(formData), workspaceId: workspace.id };
   const result = await createBedRecord(input);
 
@@ -77,7 +77,7 @@ export async function createBed(formData: FormData) {
 }
 
 export async function updateBed(formData: FormData) {
-  const { workspace } = await requireWorkspace();
+  const { workspace } = await requirePermission("ROOMS_EDIT");
   const { bedId } = bedIds(formData);
   const input = { ...bedInput(formData), workspaceId: workspace.id };
   const result = await updateBedRecord(bedId, input);
@@ -93,7 +93,7 @@ export async function updateBed(formData: FormData) {
 }
 
 export async function toggleBedDisabled(formData: FormData) {
-  const { workspace } = await requireWorkspace();
+  const { workspace } = await requirePermission("ROOMS_EDIT");
   const { hostelId, roomId, bedId } = bedIds(formData);
   const result = await toggleBedDisabledRecord(workspace.id, hostelId, roomId, bedId);
 
@@ -108,7 +108,7 @@ export async function toggleBedDisabled(formData: FormData) {
 }
 
 export async function deleteBed(formData: FormData) {
-  const { workspace } = await requireWorkspace();
+  const { workspace } = await requirePermission("ROOMS_DELETE");
   const { hostelId, roomId, bedId } = bedIds(formData);
   const result = await deleteBedRecord(workspace.id, hostelId, roomId, bedId);
 

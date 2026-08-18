@@ -6,6 +6,12 @@ import { prisma } from "@/lib/prisma";
 import { requireSession, requireWorkspace } from "@/lib/session";
 import { WorkspaceRole } from "@prisma/client";
 import { recordAudit } from "@/lib/audit";
+import { allPermissions } from "@/lib/permissions";
+
+function readPermissions(formData: FormData) {
+  const values = formData.getAll("permissions").map(String);
+  return values.filter((value) => allPermissions.includes(value as never));
+}
 
 function normalizeEmail(value: FormDataEntryValue | null) {
   const email = String(value || "").trim().toLowerCase();
@@ -19,23 +25,38 @@ export async function inviteAdmin(formData: FormData) {
   const email = normalizeEmail(formData.get("email"));
   const roleValue = String(formData.get("role") || "ADMIN");
   const invitedRole = roleValue === "STAFF" ? WorkspaceRole.STAFF : WorkspaceRole.ADMIN;
+  const permissions = readPermissions(formData);
   if (email === session.user.email.toLowerCase()) throw new Error("Це ваш email");
 
   const user = await prisma.user.findUnique({ where: { email } });
   if (user) {
     await prisma.workspaceMember.upsert({
       where: { workspaceId_userId: { workspaceId: workspace.id, userId: user.id } },
-      create: { workspaceId: workspace.id, userId: user.id, role: invitedRole },
-      update: { role: invitedRole },
+      create: { workspaceId: workspace.id, userId: user.id, role: invitedRole, permissions, permissionsConfigured: true },
+      update: { role: invitedRole, permissions, permissionsConfigured: true },
     });
   } else {
     await prisma.workspaceInvite.upsert({
       where: { workspaceId_email: { workspaceId: workspace.id, email } },
-      create: { workspaceId: workspace.id, email, invitedByUserId: session.user.id, role: invitedRole },
-      update: { invitedByUserId: session.user.id, role: invitedRole },
+      create: { workspaceId: workspace.id, email, invitedByUserId: session.user.id, role: invitedRole, permissions, permissionsConfigured: true },
+      update: { invitedByUserId: session.user.id, role: invitedRole, permissions, permissionsConfigured: true },
     });
   }
   await recordAudit({ workspaceId: workspace.id, actor: session.user, action: "MEMBER_INVITED", entityType: "WorkspaceMember", summary: `Запросив(ла) ${email} як ${invitedRole === "ADMIN" ? "адміністратора" : "працівника"}` });
+  revalidatePath("/settings/team");
+}
+
+export async function updateMemberPermissions(formData: FormData) {
+  const { workspace, role, session } = await requireWorkspace();
+  if (role !== "OWNER") throw new Error("Лише власник може змінювати доступи");
+  const memberId = String(formData.get("memberId") || "");
+  const roleValue = String(formData.get("role") || "STAFF");
+  const memberRole = roleValue === "ADMIN" ? WorkspaceRole.ADMIN : WorkspaceRole.STAFF;
+  const permissions = readPermissions(formData);
+  const member = await prisma.workspaceMember.findFirst({ where: { id: memberId, workspaceId: workspace.id, role: { not: "OWNER" } }, include: { user: true } });
+  if (!member) throw new Error("Учасника не знайдено");
+  await prisma.workspaceMember.update({ where: { id: member.id }, data: { role: memberRole, permissions, permissionsConfigured: true } });
+  await recordAudit({ workspaceId: workspace.id, actor: session.user, action: "MEMBER_PERMISSIONS_UPDATED", entityType: "WorkspaceMember", entityId: member.id, summary: `Змінив(ла) доступи для ${member.user.email}` });
   revalidatePath("/settings/team");
 }
 
@@ -66,8 +87,8 @@ export async function acceptInvite(formData: FormData) {
   await prisma.$transaction([
     prisma.workspaceMember.upsert({
       where: { workspaceId_userId: { workspaceId: invite.workspaceId, userId: session.user.id } },
-      create: { workspaceId: invite.workspaceId, userId: session.user.id, role: invite.role },
-      update: { role: invite.role },
+      create: { workspaceId: invite.workspaceId, userId: session.user.id, role: invite.role, permissions: invite.permissions, permissionsConfigured: invite.permissionsConfigured },
+      update: { role: invite.role, permissions: invite.permissions, permissionsConfigured: invite.permissionsConfigured },
     }),
     prisma.workspaceInvite.delete({ where: { id: invite.id } }),
   ]);

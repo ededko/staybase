@@ -1,0 +1,5 @@
+import Link from "next/link";
+import { prisma } from "@/lib/prisma";
+import { requireWorkspace } from "@/lib/session";
+import { markNotificationRead } from "@/app/actions/notifications";
+export default async function NotificationsPage(){const {workspace,session}=await requireWorkspace();const items=await prisma.notification.findMany({where:{workspaceId:workspace.id,userId:session.user.id},orderBy:{createdAt:"desc"},take:100});return <main className="p-4 sm:p-6 lg:p-8"><h1 className="text-4xl font-bold">Сповіщення</h1><div className="activity-list mt-6">{items.map(x=><article key={x.id} className={x.readAt?"opacity-60":""}><span className="activity-icon">!</span><div className="flex-1"><b>{x.title}</b><p>{x.message}</p><small>{x.createdAt.toLocaleString("uk-UA")}</small>{x.href&&<Link href={x.href} className="mr-4 text-sm text-amber-600">Відкрити</Link>}{!x.readAt&&<form action={markNotificationRead} className="inline"><input type="hidden" name="id" value={x.id}/><button className="text-sm text-blue-600">Прочитано</button></form>}</div></article>)}{items.length===0&&<p>Нових сповіщень немає.</p>}</div></main>}

@@ -4,6 +4,7 @@ import "./globals.css";
 
 import AppShell from "@/components/AppShell";
 import { getCurrentSession, getWorkspaceMembership } from "@/lib/session";
+import { effectivePermissions } from "@/lib/permissions";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -36,7 +37,7 @@ export default async function RootLayout({
     >
       <body className="bg-slate-100">
         {session ? (
-          <AppShell userName={session.user.name} role={membership?.role}>{children}</AppShell>
+          <AppShell userName={session.user.name} role={membership?.role} permissions={membership ? effectivePermissions(membership) : []}>{children}</AppShell>
         ) : (
           <main className="flex min-h-screen items-center justify-center p-6">
             {children}
