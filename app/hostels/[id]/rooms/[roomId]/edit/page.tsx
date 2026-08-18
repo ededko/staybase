@@ -16,7 +16,7 @@ export default async function EditRoomPage({ params }: Props) {
   if (!room || room.hostelId !== Number(hostelId)) notFound();
 
   return (
-    <div className="max-w-xl p-8">
+    <div className="max-w-xl p-4 sm:p-6 lg:p-8">
       <Link href={`/hostels/${hostelId}/rooms/${roomId}`} className="text-blue-600 hover:underline">
         ← Назад до кімнати
       </Link>

@@ -19,7 +19,7 @@ export default async function TeamPage() {
   ]);
 
   return (
-    <main className="p-8">
+    <main className="p-4 sm:p-6 lg:p-8">
       <h1 className="text-4xl font-bold">Команда</h1>
       <p className="mt-2 text-slate-500">Адміністратори мають доступ до даних робочого простору «{workspace.name}».</p>
 

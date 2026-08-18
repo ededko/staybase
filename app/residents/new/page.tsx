@@ -21,13 +21,13 @@ export default async function NewResidentPage() {
   }));
 
   return (
-    <div className="max-w-2xl p-8">
+    <div className="max-w-2xl p-4 sm:p-6 lg:p-8">
       <Link href="/residents" className="text-blue-600 hover:underline">← Назад до мешканців</Link>
       <h1 className="mt-6 text-4xl font-bold text-slate-800">Заселити мешканця</h1>
       <p className="mt-2 text-slate-500">Оберіть доступне ліжко та внесіть дані мешканця.</p>
 
       {bedOptions.length === 0 ? (
-        <div className="mt-8 rounded-2xl border border-dashed p-8 text-center text-slate-500">Доступних ліжок немає.</div>
+        <div className="mt-8 rounded-2xl border border-dashed p-4 sm:p-6 lg:p-8 text-center text-slate-500">Доступних ліжок немає.</div>
       ) : (
         <form action={checkInResident} className="mt-8 space-y-4 rounded-2xl border bg-white p-6 shadow-sm">
           <ResidentFormFields beds={bedOptions} />

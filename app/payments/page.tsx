@@ -110,7 +110,7 @@ export default async function PaymentsPage({ searchParams }: Props) {
     .reduce((sum, payment) => sum + Number(payment.amount), 0);
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-6 lg:p-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-4xl font-bold text-slate-800">Платежі</h1>

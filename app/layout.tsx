@@ -2,8 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
-import Sidebar from "@/components/Sidebar";
-import Header from "@/components/Header";
+import AppShell from "@/components/AppShell";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 
@@ -36,13 +35,7 @@ export default async function RootLayout({
     >
       <body className="bg-slate-100">
         {session ? (
-          <div className="flex h-screen">
-            <Sidebar />
-            <div className="flex flex-1 flex-col">
-              <Header userName={session.user.name} />
-              <main className="flex-1 overflow-auto">{children}</main>
-            </div>
-          </div>
+          <AppShell userName={session.user.name}>{children}</AppShell>
         ) : (
           <main className="flex min-h-screen items-center justify-center p-6">
             {children}

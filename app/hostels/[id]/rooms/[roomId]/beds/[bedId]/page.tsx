@@ -44,7 +44,7 @@ export default async function BedPage({ params, searchParams }: Props) {
   if (!bed) notFound();
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-6 lg:p-8">
       <Link
         href={`/hostels/${id}/rooms/${roomId}`}
         className="text-blue-600 hover:underline"

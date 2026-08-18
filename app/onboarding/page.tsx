@@ -11,8 +11,8 @@ export default async function OnboardingPage() {
     orderBy: { createdAt: "desc" },
   });
   return (
-    <main className="mx-auto max-w-xl p-8">
-      <div className="rounded-2xl border bg-white p-8 shadow-sm">
+    <main className="mx-auto max-w-xl p-4 sm:p-6 lg:p-8">
+      <div className="rounded-2xl border bg-white p-4 sm:p-6 lg:p-8 shadow-sm">
         <h1 className="text-3xl font-bold">Створіть свій StayBase</h1>
         <p className="mt-2 text-slate-500">Дані вашої компанії будуть відокремлені від інших акаунтів.</p>
         {invites.length > 0 && (

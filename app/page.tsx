@@ -53,7 +53,7 @@ export default async function Home() {
   ];
 
   return (
-    <main className="p-8">
+    <main className="p-4 sm:p-6 lg:p-8">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-4xl font-bold text-slate-800">Dashboard</h1>

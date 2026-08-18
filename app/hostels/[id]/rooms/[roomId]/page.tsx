@@ -32,7 +32,7 @@ export default async function RoomPage({ params, searchParams }: Props) {
   const disabledBeds = room.beds.length - activeBeds.length;
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-6 lg:p-8">
       <Link href={`/hostels/${hostelId}/rooms`} className="text-blue-600 hover:underline">
         ← Назад до кімнат
       </Link>

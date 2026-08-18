@@ -21,7 +21,7 @@ export default async function EditPaymentPage({ params }: Props) {
   if (!payment) notFound();
 
   return (
-    <div className="max-w-2xl p-8">
+    <div className="max-w-2xl p-4 sm:p-6 lg:p-8">
       <Link href={`/payments/${payment.id}`} className="text-blue-600 hover:underline">← Назад до платежу</Link>
       <h1 className="mt-6 text-4xl font-bold text-slate-800">Редагувати платіж</h1>
 

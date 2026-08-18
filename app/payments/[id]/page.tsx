@@ -34,7 +34,7 @@ export default async function PaymentPage({ params }: Props) {
   const typeText = payment.type === "DEPOSIT" ? "Застава" : payment.type === "OTHER" ? "Інше" : "Оренда";
 
   return (
-    <div className="max-w-3xl p-8">
+    <div className="max-w-3xl p-4 sm:p-6 lg:p-8">
       <Link href="/payments" className="text-blue-600 hover:underline">← Назад до платежів</Link>
 
       <div className="mt-6 flex flex-wrap items-start justify-between gap-4">

@@ -24,7 +24,7 @@ export default async function EditBedPage({ params, searchParams }: Props) {
   if (!bed) notFound();
 
   return (
-    <div className="max-w-xl p-8">
+    <div className="max-w-xl p-4 sm:p-6 lg:p-8">
       <Link
         href={`/hostels/${hostelId}/rooms/${roomId}/beds/${bedId}`}
         className="text-blue-600 hover:underline"

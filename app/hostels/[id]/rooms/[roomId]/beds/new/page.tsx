@@ -27,7 +27,7 @@ export default async function NewBedPage({ params, searchParams }: Props) {
   const nextNumber = Math.max(0, ...room.beds.map((bed) => bed.number)) + 1;
 
   return (
-    <div className="p-8 max-w-xl">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-xl">
       <Link
         href={`/hostels/${hostelId}/rooms/${roomId}`}
         className="text-blue-600 hover:underline"

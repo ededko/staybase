@@ -40,7 +40,7 @@ export default async function EditResidentPage({ params }: Props) {
   }));
 
   return (
-    <div className="max-w-2xl p-8">
+    <div className="max-w-2xl p-4 sm:p-6 lg:p-8">
       <Link href={`/residents/${resident.id}`} className="text-blue-600 hover:underline">← Назад до профілю</Link>
       <h1 className="mt-6 text-4xl font-bold text-slate-800">Редагувати мешканця</h1>
 

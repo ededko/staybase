@@ -43,7 +43,7 @@ export default async function HostelPage({ params }: Props) {
   const freeBeds = beds.length - occupiedBeds;
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-6 lg:p-8">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-4xl font-bold">

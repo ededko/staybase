@@ -40,7 +40,7 @@ export default async function ResidentPage({ params }: Props) {
   const status = getResidentStatus(resident);
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-6 lg:p-8">
       <Link href="/residents" className="text-blue-600 hover:underline">← Назад до мешканців</Link>
       <div className="mt-6 flex flex-wrap items-start justify-between gap-4">
         <div><h1 className="text-4xl font-bold text-slate-800">{resident.firstName} {resident.lastName}</h1><p className="mt-2 text-slate-500">{statusLabel(status)}</p></div>

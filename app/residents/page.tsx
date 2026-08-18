@@ -63,7 +63,7 @@ export default async function ResidentsPage({ searchParams }: Props) {
   ]);
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-6 lg:p-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-4xl font-bold text-slate-800">Мешканці</h1>
