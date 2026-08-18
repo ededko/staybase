@@ -4,9 +4,10 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { deleteRoomRecord, updateRoomRecord } from "@/lib/room-service";
 import { requireWorkspace } from "@/lib/session";
+import { recordAudit } from "@/lib/audit";
 
 export async function updateRoom(formData: FormData) {
-  const { workspace } = await requireWorkspace();
+  const { workspace, session } = await requireWorkspace();
   const roomId = Number(formData.get("roomId"));
   const hostelId = Number(formData.get("hostelId"));
   const name = String(formData.get("name")).trim();
@@ -18,6 +19,7 @@ export async function updateRoom(formData: FormData) {
   }
 
   await updateRoomRecord(roomId, { workspaceId: workspace.id, hostelId, name, floor });
+  await recordAudit({ workspaceId: workspace.id, actor: session.user, action: "ROOM_UPDATED", entityType: "Room", entityId: roomId, summary: `Змінив(ла) кімнату «${name}»` });
   revalidatePath(`/hostels/${hostelId}/rooms`);
   revalidatePath(`/hostels/${hostelId}/rooms/${roomId}`);
   redirect(`/hostels/${hostelId}/rooms/${roomId}`);

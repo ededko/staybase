@@ -15,7 +15,7 @@ export async function proxy(request: NextRequest) {
   if (session && isPublicPath) {
     const membership = await prisma.workspaceMember.findFirst({
       where: { userId: session.user.id },
-      select: { id: true },
+      select: { id: true, role: true },
     });
     return NextResponse.redirect(new URL(membership ? "/" : "/onboarding", request.url));
   }
@@ -23,13 +23,17 @@ export async function proxy(request: NextRequest) {
   if (session) {
     const membership = await prisma.workspaceMember.findFirst({
       where: { userId: session.user.id },
-      select: { id: true },
+      select: { id: true, role: true },
     });
     if (!membership && request.nextUrl.pathname !== "/onboarding") {
       return NextResponse.redirect(new URL("/onboarding", request.url));
     }
     if (membership && request.nextUrl.pathname === "/onboarding") {
       return NextResponse.redirect(new URL("/", request.url));
+    }
+    if (membership?.role === "STAFF") {
+      const staffAllowed = request.nextUrl.pathname.startsWith("/internal-requests");
+      if (!staffAllowed) return NextResponse.redirect(new URL("/internal-requests", request.url));
     }
   }
 

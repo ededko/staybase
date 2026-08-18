@@ -38,6 +38,10 @@ function typeLabel(type: string) {
   return "Оренда";
 }
 
+function methodLabel(method: string) {
+  return ({ CASH: "Готівка", BLIK: "BLIK", BANK_TRANSFER: "Переказ", CARD: "Картка", COMPANY: "Фірма", OTHER: "Інше" } as Record<string, string>)[method] || "—";
+}
+
 export default async function PaymentsPage({ searchParams }: Props) {
   const { query = "", hostel, status, type, from, to } = await searchParams;
   const hostelId = toId(hostel);
@@ -162,7 +166,7 @@ export default async function PaymentsPage({ searchParams }: Props) {
               <th className="px-5 py-4 font-medium">Кімната</th>
               <th className="px-5 py-4 font-medium">Сума</th>
               <th className="px-5 py-4 font-medium">Тип</th>
-              <th className="px-5 py-4 font-medium">Термін</th>
+              <th className="px-5 py-4 font-medium">Планова дата</th>
               <th className="px-5 py-4 font-medium">Оплачено</th>
               <th className="px-5 py-4 font-medium">Статус</th>
             </tr>
@@ -180,7 +184,7 @@ export default async function PaymentsPage({ searchParams }: Props) {
                   <td className="px-5 py-4">{payment.resident.bed?.room.hostel.name || "—"}</td>
                   <td className="px-5 py-4">{payment.resident.bed?.room.name || "—"}</td>
                   <td className="px-5 py-4">{Number(payment.amount).toFixed(2)} zł</td>
-                  <td className="px-5 py-4">{typeLabel(payment.type)}</td>
+                  <td className="px-5 py-4">{typeLabel(payment.type)}<small className="block text-slate-500">{methodLabel(payment.method)}</small></td>
                   <td className="px-5 py-4">{payment.dueDate.toLocaleDateString("uk-UA")}</td>
                   <td className="px-5 py-4">{payment.paidAt?.toLocaleDateString("uk-UA") || "—"}</td>
                   <td className="px-5 py-4"><span className={`rounded-full px-3 py-1 ${statusClass(paymentStatus)}`}>{statusLabel(paymentStatus)}</span></td>

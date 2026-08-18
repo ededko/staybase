@@ -8,6 +8,7 @@ import {
   updateResidentWithAssignment,
 } from "@/lib/resident-service";
 import { requireWorkspace } from "@/lib/session";
+import { recordAudit } from "@/lib/audit";
 
 function residentInput(formData: FormData) {
   const firstName = String(formData.get("firstName")).trim();
@@ -74,32 +75,37 @@ function revalidateResidentPages() {
 }
 
 export async function checkInResident(formData: FormData) {
-  const { workspace } = await requireWorkspace();
-  await createResidentWithAssignment(residentInput(formData), assignment(formData, workspace.id));
+  const { workspace, session } = await requireWorkspace();
+  const input = residentInput(formData);
+  const resident = await createResidentWithAssignment(input, assignment(formData, workspace.id));
+  await recordAudit({ workspaceId: workspace.id, actor: session.user, action: "RESIDENT_CHECKED_IN", entityType: "Resident", entityId: resident.id, summary: `Заселив(ла) ${input.firstName} ${input.lastName}` });
 
   revalidateResidentPages();
   redirect("/residents");
 }
 
 export async function updateResidentDetails(formData: FormData) {
-  const { workspace } = await requireWorkspace();
+  const { workspace, session } = await requireWorkspace();
   const residentId = Number(formData.get("residentId"));
 
+  const input = residentInput(formData);
   await updateResidentWithAssignment(
     residentId,
-    residentInput(formData),
+    input,
     assignment(formData, workspace.id)
   );
+  await recordAudit({ workspaceId: workspace.id, actor: session.user, action: "RESIDENT_UPDATED", entityType: "Resident", entityId: residentId, summary: `Змінив(ла) дані ${input.firstName} ${input.lastName}` });
 
   revalidateResidentPages();
   redirect(`/residents/${residentId}`);
 }
 
 export async function checkOutResident(formData: FormData) {
-  const { workspace } = await requireWorkspace();
+  const { workspace, session } = await requireWorkspace();
   const residentId = Number(formData.get("residentId"));
 
   await archiveResidentRecord(workspace.id, residentId);
+  await recordAudit({ workspaceId: workspace.id, actor: session.user, action: "RESIDENT_CHECKED_OUT", entityType: "Resident", entityId: residentId, summary: `Виселив(ла) мешканця #${residentId}` });
 
   revalidateResidentPages();
   redirect("/residents");

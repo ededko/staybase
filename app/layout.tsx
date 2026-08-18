@@ -3,8 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
 import AppShell from "@/components/AppShell";
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
+import { getCurrentSession, getWorkspaceMembership } from "@/lib/session";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,7 +25,8 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getCurrentSession();
+  const membership = session ? await getWorkspaceMembership() : null;
 
   return (
     <html
@@ -36,7 +36,7 @@ export default async function RootLayout({
     >
       <body className="bg-slate-100">
         {session ? (
-          <AppShell userName={session.user.name}>{children}</AppShell>
+          <AppShell userName={session.user.name} role={membership?.role}>{children}</AppShell>
         ) : (
           <main className="flex min-h-screen items-center justify-center p-6">
             {children}

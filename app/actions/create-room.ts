@@ -3,9 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { createRoomWithBeds } from "@/lib/room-service";
 import { requireWorkspace } from "@/lib/session";
+import { recordAudit } from "@/lib/audit";
 
 export async function createRoom(_: unknown, formData: FormData) {
-  const { workspace } = await requireWorkspace();
+  const { workspace, session } = await requireWorkspace();
   const hostelId = Number(formData.get("hostelId"));
   const name = String(formData.get("name")).trim();
   const floor = Number(formData.get("floor"));
@@ -15,7 +16,7 @@ export async function createRoom(_: unknown, formData: FormData) {
     return { error: "Перевірте дані кімнати" };
   }
 
-  await createRoomWithBeds(
+  const room = await createRoomWithBeds(
     {
       workspaceId: workspace.id,
       hostelId,
@@ -24,6 +25,7 @@ export async function createRoom(_: unknown, formData: FormData) {
     },
     bedsCount
   );
+  await recordAudit({ workspaceId: workspace.id, actor: session.user, action: "ROOM_CREATED", entityType: "Room", entityId: room.id, summary: `Створив(ла) кімнату «${name}» з ${bedsCount} ліжками` });
 
   revalidatePath(`/hostels/${hostelId}/rooms`);
 

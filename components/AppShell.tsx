@@ -6,9 +6,11 @@ import Header from "@/components/Header";
 
 export default function AppShell({
   userName,
+  role,
   children,
 }: {
   userName: string;
+  role?: "OWNER" | "ADMIN" | "STAFF";
   children: React.ReactNode;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -16,7 +18,7 @@ export default function AppShell({
   return (
     <div className="app-shell min-h-screen md:flex">
       <div className="hidden h-screen shrink-0 md:block">
-        <Sidebar />
+        <Sidebar role={role} />
       </div>
 
       {menuOpen && (
@@ -27,7 +29,7 @@ export default function AppShell({
             onClick={() => setMenuOpen(false)}
           />
           <div className="relative h-full shadow-2xl">
-            <Sidebar mobile onNavigate={() => setMenuOpen(false)} />
+            <Sidebar role={role} mobile onNavigate={() => setMenuOpen(false)} />
           </div>
         </div>
       )}

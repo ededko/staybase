@@ -5,11 +5,12 @@ import { redirect } from "next/navigation";
 import { QualityStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireWorkspace } from "@/lib/session";
+import { recordAudit } from "@/lib/audit";
 
 const statuses = new Set(Object.values(QualityStatus));
 
 export async function createQualityEntry(formData: FormData) {
-  const { workspace } = await requireWorkspace();
+  const { workspace, session } = await requireWorkspace();
   const hostelId = Number(formData.get("hostelId")) || null;
   const roomId = Number(formData.get("roomId")) || null;
   const text = String(formData.get("text") || "").trim();
@@ -26,22 +27,24 @@ export async function createQualityEntry(formData: FormData) {
     if (!allowed) throw new Error("Кімнату не знайдено");
   }
 
-  await prisma.qualityEntry.create({ data: {
+  const entry = await prisma.qualityEntry.create({ data: {
     workspaceId: workspace.id, hostelId, roomId, text, rating,
     source: String(formData.get("source") || "INTERNAL"),
     authorName: String(formData.get("authorName") || "").trim() || null,
     category: String(formData.get("category") || "Інше"),
     assignedTo: String(formData.get("assignedTo") || "").trim() || null,
   }});
+  await recordAudit({ workspaceId: workspace.id, actor: session.user, action: "QUALITY_CREATED", entityType: "QualityEntry", entityId: entry.id, summary: `Додав(ла) запис контролю якості: ${entry.category}` });
   revalidatePath("/quality");
   redirect("/quality?created=1");
 }
 
 export async function updateQualityStatus(formData: FormData) {
-  const { workspace } = await requireWorkspace();
+  const { workspace, session } = await requireWorkspace();
   const id = Number(formData.get("id"));
   const status = String(formData.get("status")) as QualityStatus;
   if (!id || !statuses.has(status)) throw new Error("Некоректний статус");
-  await prisma.qualityEntry.updateMany({ where: { id, workspaceId: workspace.id }, data: { status } });
+  const updated = await prisma.qualityEntry.updateMany({ where: { id, workspaceId: workspace.id }, data: { status } });
+  if (updated.count) await recordAudit({ workspaceId: workspace.id, actor: session.user, action: "QUALITY_STATUS_UPDATED", entityType: "QualityEntry", entityId: id, summary: `Змінив(ла) статус запису якості #${id} на ${status}` });
   revalidatePath("/quality");
 }

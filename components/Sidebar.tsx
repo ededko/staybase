@@ -17,8 +17,13 @@ const menu = [
   },
   {
     name: "Кімнати",
-    href: "#",
+    href: "/rooms",
     icon: "🛏️",
+  },
+  {
+    name: "Внутрішні заявки",
+    href: "/internal-requests",
+    icon: "📋",
   },
   {
     name: "Мешканці",
@@ -53,13 +58,16 @@ const menu = [
 ];
 
 export default function Sidebar({
+  role,
   mobile = false,
   onNavigate,
 }: {
+  role?: "OWNER" | "ADMIN" | "STAFF";
   mobile?: boolean;
   onNavigate?: () => void;
 }) {
   const pathname = usePathname();
+  const visibleMenu = role === "STAFF" ? menu.filter((item) => item.href === "/internal-requests") : menu;
 
   return (
     <aside className="sidebar flex h-full w-72 flex-col text-white md:w-64">
@@ -76,7 +84,7 @@ export default function Sidebar({
       </div>
 
       <nav className="flex-1 overflow-y-auto p-4">
-        {menu.map((item) => item.href === "#" ? (
+        {visibleMenu.map((item) => item.href === "#" ? (
           <div key={item.name} className="mb-1 flex items-center gap-3 rounded-xl px-4 py-3 text-slate-600">
             <span>{item.icon}</span><span>{item.name}</span><span className="ml-auto text-xs">скоро</span>
           </div>

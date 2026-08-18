@@ -3,7 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { createPaymentFromForm } from "@/app/actions/payments";
 import { requireWorkspace } from "@/lib/session";
 
-export default async function NewPaymentPage() {
+export default async function NewPaymentPage({ searchParams }: { searchParams: Promise<{ residentId?: string }> }) {
+  const { residentId } = await searchParams;
   const { workspace } = await requireWorkspace();
   const residents = await prisma.resident.findMany({
     where: { workspaceId: workspace.id },
@@ -27,7 +28,7 @@ export default async function NewPaymentPage() {
       <form action={createPaymentFromForm} className="mt-8 space-y-4 rounded-2xl border bg-white p-6 shadow-sm">
         <div>
           <label className="mb-1 block text-sm text-slate-600">Мешканець</label>
-          <select name="residentId" required className="w-full rounded-lg border p-3">
+          <select name="residentId" required defaultValue={residentId || ""} className="w-full rounded-lg border p-3">
             <option value="">Оберіть мешканця</option>
             {residents.map((resident) => (
               <option key={resident.id} value={resident.id}>
@@ -52,9 +53,16 @@ export default async function NewPaymentPage() {
             <input type="number" name="amount" min="0.01" step="0.01" required className="w-full rounded-lg border p-3" />
           </div>
           <div>
-            <label className="mb-1 block text-sm text-slate-600">Термін оплати</label>
+            <label className="mb-1 block text-sm text-slate-600">Дата планової оплати</label>
             <input type="date" name="dueDate" required className="w-full rounded-lg border p-3" />
           </div>
+        </div>
+
+        <div>
+          <label className="mb-1 block text-sm text-slate-600">Спосіб оплати</label>
+          <select name="method" defaultValue="CASH" className="w-full rounded-lg border p-3">
+            <option value="CASH">Готівка</option><option value="BLIK">BLIK</option><option value="BANK_TRANSFER">Банківський переказ</option><option value="CARD">Картка</option><option value="COMPANY">Оплата від фірми</option><option value="OTHER">Інше</option>
+          </select>
         </div>
 
         <div>
@@ -70,6 +78,13 @@ export default async function NewPaymentPage() {
           <label className="mb-1 block text-sm text-slate-600">Дата оплати</label>
           <input type="date" name="paidAt" className="w-full rounded-lg border p-3" />
         </div>
+
+        <details className="rounded-xl border p-4">
+          <summary className="cursor-pointer font-semibold">Інший період оплати</summary>
+          <label className="mt-3 block text-sm text-slate-600">Оплачено до конкретної дати</label>
+          <input type="date" name="paidThrough" className="mt-1 w-full rounded-lg border p-3" />
+          <p className="mt-2 text-xs text-slate-500">Не заповнюйте для стандартної місячної оплати — система перенесе дату на місяць автоматично.</p>
+        </details>
 
         <button className="rounded-lg bg-green-600 px-5 py-3 text-white hover:bg-green-700">Створити платіж</button>
       </form>

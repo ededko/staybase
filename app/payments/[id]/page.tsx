@@ -32,6 +32,7 @@ export default async function PaymentPage({ params }: Props) {
   const statusText = status === "paid" ? "Оплачено" : status === "overdue" ? "Прострочено" : "Очікує оплату";
   const statusClass = status === "paid" ? "text-green-600" : status === "overdue" ? "text-red-600" : "text-amber-600";
   const typeText = payment.type === "DEPOSIT" ? "Застава" : payment.type === "OTHER" ? "Інше" : "Оренда";
+  const methodText = { CASH: "Готівка", BLIK: "BLIK", BANK_TRANSFER: "Банківський переказ", CARD: "Картка", COMPANY: "Оплата від фірми", OTHER: "Інше" }[payment.method];
 
   return (
     <div className="max-w-3xl p-4 sm:p-6 lg:p-8">
@@ -50,8 +51,10 @@ export default async function PaymentPage({ params }: Props) {
           <div><dt className="text-sm text-slate-500">Сума</dt><dd className="mt-1 text-2xl font-bold">{Number(payment.amount).toFixed(2)} zł</dd></div>
           <div><dt className="text-sm text-slate-500">Статус</dt><dd className={`mt-1 text-lg font-semibold ${statusClass}`}>{statusText}</dd></div>
           <div><dt className="text-sm text-slate-500">Тип платежу</dt><dd className="mt-1">{typeText}</dd></div>
-          <div><dt className="text-sm text-slate-500">Термін оплати</dt><dd className="mt-1">{payment.dueDate.toLocaleDateString("uk-UA")}</dd></div>
+          <div><dt className="text-sm text-slate-500">Дата планової оплати</dt><dd className="mt-1">{payment.dueDate.toLocaleDateString("uk-UA")}</dd></div>
           <div><dt className="text-sm text-slate-500">Дата оплати</dt><dd className="mt-1">{payment.paidAt?.toLocaleDateString("uk-UA") || "—"}</dd></div>
+          <div><dt className="text-sm text-slate-500">Спосіб оплати</dt><dd className="mt-1">{methodText}</dd></div>
+          <div><dt className="text-sm text-slate-500">Оплачено до</dt><dd className="mt-1">{payment.paidThrough?.toLocaleDateString("uk-UA") || "—"}</dd></div>
           <div><dt className="text-sm text-slate-500">Хостел</dt><dd className="mt-1">{payment.resident.bed?.room.hostel.name || "—"}</dd></div>
           <div><dt className="text-sm text-slate-500">Кімната</dt><dd className="mt-1">{payment.resident.bed?.room.name || "—"}</dd></div>
           <div className="md:col-span-2"><dt className="text-sm text-slate-500">Примітки</dt><dd className="mt-1 whitespace-pre-wrap">{payment.notes || "—"}</dd></div>

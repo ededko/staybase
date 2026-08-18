@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireSession, requireWorkspace } from "@/lib/session";
+import { WorkspaceRole } from "@prisma/client";
+import { recordAudit } from "@/lib/audit";
 
 function normalizeEmail(value: FormDataEntryValue | null) {
   const email = String(value || "").trim().toLowerCase();
@@ -15,22 +17,25 @@ export async function inviteAdmin(formData: FormData) {
   const { session, workspace, role } = await requireWorkspace();
   if (role !== "OWNER") throw new Error("Лише власник може додавати адміністраторів");
   const email = normalizeEmail(formData.get("email"));
+  const roleValue = String(formData.get("role") || "ADMIN");
+  const invitedRole = roleValue === "STAFF" ? WorkspaceRole.STAFF : WorkspaceRole.ADMIN;
   if (email === session.user.email.toLowerCase()) throw new Error("Це ваш email");
 
   const user = await prisma.user.findUnique({ where: { email } });
   if (user) {
     await prisma.workspaceMember.upsert({
       where: { workspaceId_userId: { workspaceId: workspace.id, userId: user.id } },
-      create: { workspaceId: workspace.id, userId: user.id, role: "ADMIN" },
-      update: {},
+      create: { workspaceId: workspace.id, userId: user.id, role: invitedRole },
+      update: { role: invitedRole },
     });
   } else {
     await prisma.workspaceInvite.upsert({
       where: { workspaceId_email: { workspaceId: workspace.id, email } },
-      create: { workspaceId: workspace.id, email, invitedByUserId: session.user.id },
-      update: { invitedByUserId: session.user.id },
+      create: { workspaceId: workspace.id, email, invitedByUserId: session.user.id, role: invitedRole },
+      update: { invitedByUserId: session.user.id, role: invitedRole },
     });
   }
+  await recordAudit({ workspaceId: workspace.id, actor: session.user, action: "MEMBER_INVITED", entityType: "WorkspaceMember", summary: `Запросив(ла) ${email} як ${invitedRole === "ADMIN" ? "адміністратора" : "працівника"}` });
   revalidatePath("/settings/team");
 }
 
@@ -38,7 +43,7 @@ export async function removeAdmin(formData: FormData) {
   const { workspace, role } = await requireWorkspace();
   if (role !== "OWNER") throw new Error("Лише власник може видаляти адміністраторів");
   const memberId = String(formData.get("memberId") || "");
-  await prisma.workspaceMember.deleteMany({ where: { id: memberId, workspaceId: workspace.id, role: "ADMIN" } });
+  await prisma.workspaceMember.deleteMany({ where: { id: memberId, workspaceId: workspace.id, role: { not: "OWNER" } } });
   revalidatePath("/settings/team");
 }
 
@@ -61,8 +66,8 @@ export async function acceptInvite(formData: FormData) {
   await prisma.$transaction([
     prisma.workspaceMember.upsert({
       where: { workspaceId_userId: { workspaceId: invite.workspaceId, userId: session.user.id } },
-      create: { workspaceId: invite.workspaceId, userId: session.user.id, role: "ADMIN" },
-      update: {},
+      create: { workspaceId: invite.workspaceId, userId: session.user.id, role: invite.role },
+      update: { role: invite.role },
     }),
     prisma.workspaceInvite.delete({ where: { id: invite.id } }),
   ]);

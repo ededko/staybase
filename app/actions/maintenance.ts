@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { TicketPriority, TicketStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireWorkspace } from "@/lib/session";
+import { recordAudit } from "@/lib/audit";
 
 const statuses = new Set(Object.values(TicketStatus));
 const priorities = new Set(Object.values(TicketPriority));
@@ -28,7 +29,7 @@ async function resolveLocation(hostelId: number, roomId: number | null) {
 }
 
 export async function createMaintenanceTicket(formData: FormData) {
-  const { workspace } = await requireWorkspace();
+  const { workspace, session } = await requireWorkspace();
   const hostelId = Number(formData.get("hostelId"));
   const roomId = Number(formData.get("roomId")) || null;
   const description = String(formData.get("description") || "").trim();
@@ -39,13 +40,14 @@ export async function createMaintenanceTicket(formData: FormData) {
   if (location.workspaceId !== workspace.id) throw new Error("Немає доступу");
   const photoUrl = await readPhoto(formData);
 
-  await prisma.maintenanceTicket.create({ data: {
+  const ticket = await prisma.maintenanceTicket.create({ data: {
     workspaceId: workspace.id, hostelId, roomId, description, category, priority: priorityValue,
     photoUrl,
     reporterName: String(formData.get("reporterName") || "").trim() || null,
     reporterPhone: String(formData.get("reporterPhone") || "").trim() || null,
     assignedTo: String(formData.get("assignedTo") || "").trim() || null,
   }});
+  await recordAudit({ workspaceId: workspace.id, actor: session.user, action: "MAINTENANCE_CREATED", entityType: "MaintenanceTicket", entityId: ticket.id, summary: `Створив(ла) ремонтну заявку «${category}»` });
   revalidatePath("/maintenance");
   redirect("/maintenance?created=1");
 }
@@ -71,14 +73,15 @@ export async function createPublicMaintenanceTicket(formData: FormData) {
 }
 
 export async function updateMaintenanceStatus(formData: FormData) {
-  const { workspace } = await requireWorkspace();
+  const { workspace, session } = await requireWorkspace();
   const id = Number(formData.get("id"));
   const status = String(formData.get("status")) as TicketStatus;
   if (!id || !statuses.has(status)) throw new Error("Некоректний статус");
-  await prisma.maintenanceTicket.updateMany({
+  const updated = await prisma.maintenanceTicket.updateMany({
     where: { id, workspaceId: workspace.id },
     data: { status, completedAt: status === "DONE" ? new Date() : null },
   });
+  if (updated.count) await recordAudit({ workspaceId: workspace.id, actor: session.user, action: "MAINTENANCE_STATUS_UPDATED", entityType: "MaintenanceTicket", entityId: id, summary: `Змінив(ла) статус ремонтної заявки #${id} на ${status}` });
   revalidatePath("/maintenance");
   revalidatePath("/");
 }

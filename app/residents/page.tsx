@@ -49,12 +49,6 @@ export default async function ResidentsPage({ searchParams }: Props) {
       where: { AND: filters },
       include: {
         bed: { include: { room: { include: { hostel: true } } } },
-        payments: {
-          where: { paid: true },
-          orderBy: { dueDate: "desc" },
-          take: 1,
-          select: { dueDate: true },
-        },
       },
       orderBy: [{ isActive: "desc" }, { lastName: "asc" }, { firstName: "asc" }],
     }),
@@ -92,7 +86,7 @@ export default async function ResidentsPage({ searchParams }: Props) {
                   <td className="px-5 py-4">{resident.bed ? `${resident.bed.room.hostel.name} · ${resident.bed.room.name} · Ліжко ${resident.bed.number}` : "—"}</td>
                   <td className="px-5 py-4">{resident.checkIn.toLocaleDateString("uk-UA")}</td>
                   <td className="px-5 py-4">{resident.checkOut?.toLocaleDateString("uk-UA") || "—"}</td>
-                  <td className="px-5 py-4">{resident.payments[0]?.dueDate.toLocaleDateString("uk-UA") || "—"}</td>
+                  <td className="px-5 py-4">{resident.paidThrough?.toLocaleDateString("uk-UA") || "—"}</td>
                   <td className="px-5 py-4"><span className={`rounded-full px-3 py-1 ${statusClass(status)}`}>{statusLabel(status)}</span></td>
                 </tr>
               );

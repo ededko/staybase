@@ -26,7 +26,7 @@ export default async function MaintenancePage() {
         <label>Категорія<select name="category">{categories.map(c=><option key={c}>{c}</option>)}</select></label>
         <label>Терміновість<select name="priority"><option value="NORMAL">Звичайна</option><option value="URGENT">Термінова</option><option value="LOW">Низька</option></select></label>
         <label>Хто повідомив<input name="reporterName" placeholder="Ім’я" /></label><label>Телефон<input name="reporterPhone" inputMode="tel" /></label>
-        <label>Відповідальний<input name="assignedTo" placeholder="Майстер або працівник" /></label><label>Посилання на фото<input name="photoUrl" type="url" placeholder="Необов’язково" /></label>
+        <label>Відповідальний<input name="assignedTo" placeholder="Майстер або працівник" /></label><label>Додати фото<input name="photo" type="file" accept="image/*" capture="environment" /></label>
         <label className="form-wide">Що сталося<textarea name="description" required rows={3} placeholder="Коротко опишіть проблему" /></label>
         <button className="primary-action form-submit rounded-xl px-5 py-3 font-semibold">Створити заявку</button>
       </form>

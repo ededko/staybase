@@ -102,6 +102,7 @@ export default async function Home() {
           <Link href="/applications" className="workflow-card"><span>📝</span><div><b>{dashboard.operations.newLeadApplications}</b><p>Нові запити на заселення</p></div><i>→</i></Link>
           <Link href="/maintenance" className="workflow-card"><span>🛠️</span><div><b>{dashboard.operations.openMaintenanceTickets}</b><p>Відкриті ремонтні заявки</p></div><i>→</i></Link>
           <Link href="/quality" className="workflow-card"><span>⭐</span><div><b>{dashboard.operations.newQualityEntries}</b><p>Нові записи контролю якості</p></div><i>→</i></Link>
+          <Link href="/internal-requests" className="workflow-card"><span>📋</span><div><b>{dashboard.operations.openInternalRequests}</b><p>Внутрішні заявки команди</p></div><i>→</i></Link>
         </div>
       </section>
 

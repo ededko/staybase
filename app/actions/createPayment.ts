@@ -2,7 +2,7 @@
 
 import { createPaymentRecord } from "@/lib/payment-service";
 import { redirect } from "next/navigation";
-import { PaymentType } from "@prisma/client";
+import { PaymentMethod, PaymentType } from "@prisma/client";
 import { requireWorkspace } from "@/lib/session";
 
 export async function createPayment(formData: FormData) {
@@ -18,7 +18,9 @@ export async function createPayment(formData: FormData) {
     amount: String(formData.get("amount")),
     dueDate: new Date(String(formData.get("dueDate"))),
     type: PaymentType.RENT,
+    method: PaymentMethod.CASH,
     paid: false,
+    paidThrough: null,
   });
 
   redirect(`/hostels/${hostelId}/rooms/${roomId}/beds/${bedId}`);

@@ -18,6 +18,7 @@ model User {
   sessions             Session[]
   accounts             Account[]
   workspaceMemberships WorkspaceMember[]
+  auditLogs            AuditLog[]
 
   @@map("user")
 }
@@ -35,6 +36,8 @@ model Workspace {
   leadApplications   LeadApplication[]
   maintenanceTickets MaintenanceTicket[]
   qualityEntries     QualityEntry[]
+  internalRequests   InternalRequest[]
+  auditLogs          AuditLog[]
 }
 
 model WorkspaceMember {
@@ -54,14 +57,16 @@ model WorkspaceMember {
 enum WorkspaceRole {
   OWNER
   ADMIN
+  STAFF
 }
 
 model WorkspaceInvite {
-  id              String   @id @default(cuid())
+  id              String        @id @default(cuid())
   workspaceId     String
   email           String
   invitedByUserId String
-  createdAt       DateTime @default(now())
+  role            WorkspaceRole @default(ADMIN)
+  createdAt       DateTime      @default(now())
 
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
@@ -130,6 +135,7 @@ model Hostel {
   leadApplications   LeadApplication[]
   maintenanceTickets MaintenanceTicket[]
   qualityEntries     QualityEntry[]
+  internalRequests   InternalRequest[]
 
   @@index([workspaceId])
 }
@@ -146,6 +152,7 @@ model Room {
   beds               Bed[]
   maintenanceTickets MaintenanceTicket[]
   qualityEntries     QualityEntry[]
+  internalRequests   InternalRequest[]
 }
 
 model Bed {
@@ -187,10 +194,11 @@ model Resident {
   updatedAt   DateTime @updatedAt
   workspaceId String
 
-  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  bed       Bed?      @relation(fields: [bedId], references: [id])
-  payments  Payment[]
-  stays     Stay[]
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  bed         Bed?      @relation(fields: [bedId], references: [id])
+  payments    Payment[]
+  stays       Stay[]
+  paidThrough DateTime?
 
   @@index([workspaceId])
 }
@@ -218,23 +226,37 @@ model Stay {
 }
 
 model Payment {
-  id         Int         @id @default(autoincrement())
-  amount     Decimal
-  paid       Boolean     @default(false)
-  dueDate    DateTime
-  paidAt     DateTime?
-  notes      String?
-  type       PaymentType @default(RENT)
-  residentId Int
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
+  id          Int           @id @default(autoincrement())
+  amount      Decimal
+  paid        Boolean       @default(false)
+  dueDate     DateTime
+  paidAt      DateTime?
+  notes       String?
+  type        PaymentType   @default(RENT)
+  method      PaymentMethod @default(CASH)
+  paidThrough DateTime?
+  residentId  Int
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
 
   resident Resident @relation(fields: [residentId], references: [id])
+
+  @@index([residentId, dueDate])
+  @@index([paid, dueDate])
 }
 
 enum PaymentType {
   RENT
   DEPOSIT
+  OTHER
+}
+
+enum PaymentMethod {
+  CASH
+  BLIK
+  BANK_TRANSFER
+  CARD
+  COMPANY
   OTHER
 }
 
@@ -339,4 +361,74 @@ enum QualityStatus {
   NEW
   REVIEWED
   RESOLVED
+}
+
+model InternalRequest {
+  id                Int                     @id @default(autoincrement())
+  workspaceId       String
+  hostelId          Int?
+  roomId            Int?
+  requestedByUserId String
+  assignedToUserId  String?
+  approvedByUserId  String?
+  category          InternalRequestCategory
+  title             String
+  description       String
+  amount            Decimal?
+  attachmentUrl     String?
+  priority          TicketPriority          @default(NORMAL)
+  status            InternalRequestStatus   @default(NEW)
+  dueDate           DateTime?
+  createdAt         DateTime                @default(now())
+  updatedAt         DateTime                @updatedAt
+  completedAt       DateTime?
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  hostel    Hostel?   @relation(fields: [hostelId], references: [id], onDelete: SetNull)
+  room      Room?     @relation(fields: [roomId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId, status])
+  @@index([requestedByUserId, createdAt])
+  @@index([assignedToUserId, status])
+}
+
+enum InternalRequestCategory {
+  PURCHASE
+  CLEANING
+  LINEN
+  REPAIR
+  TRANSPORT
+  BILL
+  HR
+  OTHER
+}
+
+enum InternalRequestStatus {
+  NEW
+  REVIEW
+  APPROVED
+  IN_PROGRESS
+  DONE
+  REJECTED
+}
+
+model AuditLog {
+  id          Int      @id @default(autoincrement())
+  workspaceId String
+  actorUserId String?
+  actorName   String
+  actorEmail  String?
+  action      String
+  entityType  String
+  entityId    String?
+  summary     String
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  actor     User?     @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId, createdAt])
+  @@index([actorUserId, createdAt])
+  @@index([entityType, entityId])
 }

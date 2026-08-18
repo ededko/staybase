@@ -46,12 +46,15 @@ export default async function EditPaymentPage({ params }: Props) {
 
         <div className="grid gap-4 md:grid-cols-2">
           <div><label className="mb-1 block text-sm text-slate-600">Сума</label><input type="number" name="amount" min="0.01" step="0.01" required defaultValue={Number(payment.amount)} className="w-full rounded-lg border p-3" /></div>
-          <div><label className="mb-1 block text-sm text-slate-600">Термін оплати</label><input type="date" name="dueDate" required defaultValue={formatDate(payment.dueDate)} className="w-full rounded-lg border p-3" /></div>
+          <div><label className="mb-1 block text-sm text-slate-600">Дата планової оплати</label><input type="date" name="dueDate" required defaultValue={formatDate(payment.dueDate)} className="w-full rounded-lg border p-3" /></div>
         </div>
+
+        <div><label className="mb-1 block text-sm text-slate-600">Спосіб оплати</label><select name="method" defaultValue={payment.method} className="w-full rounded-lg border p-3"><option value="CASH">Готівка</option><option value="BLIK">BLIK</option><option value="BANK_TRANSFER">Банківський переказ</option><option value="CARD">Картка</option><option value="COMPANY">Оплата від фірми</option><option value="OTHER">Інше</option></select></div>
 
         <div><label className="mb-1 block text-sm text-slate-600">Примітки</label><textarea name="notes" rows={3} defaultValue={payment.notes || ""} className="w-full rounded-lg border p-3" /></div>
         <label className="flex items-center gap-2 text-slate-700"><input type="checkbox" name="paid" defaultChecked={payment.paid} /> Позначити як оплачений</label>
         <div><label className="mb-1 block text-sm text-slate-600">Дата оплати</label><input type="date" name="paidAt" defaultValue={formatDate(payment.paidAt)} className="w-full rounded-lg border p-3" /></div>
+        <div><label className="mb-1 block text-sm text-slate-600">Оплачено до</label><input type="date" name="paidThrough" defaultValue={formatDate(payment.paidThrough)} className="w-full rounded-lg border p-3" /></div>
 
         <button className="rounded-lg bg-slate-900 px-5 py-3 text-white hover:bg-slate-800">Зберегти зміни</button>
       </form>
