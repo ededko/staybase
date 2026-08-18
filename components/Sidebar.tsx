@@ -57,25 +57,22 @@ export default function Sidebar({
   const pathname = usePathname();
 
   return (
-    <aside className="flex h-full w-72 flex-col bg-slate-900 text-white md:w-64">
-      <div className="flex items-start justify-between border-b border-slate-800 p-5 md:p-6">
+    <aside className="sidebar flex h-full w-72 flex-col text-white md:w-64">
+      <div className="flex items-start justify-between border-b border-white/10 p-5 md:p-6">
         <div>
-        <h1 className="text-2xl font-bold">
-          StayBase
-        </h1>
-
-        <p className="text-slate-400">
-          CRM
-        </p>
+        <div className="flex items-center gap-3">
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-400 font-black text-slate-950">S</span>
+          <div><h1 className="text-xl font-bold tracking-tight">StayBase</h1><p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-400">Hostel CRM</p></div>
+        </div>
         </div>
         {mobile && (
-          <button onClick={onNavigate} aria-label="Закрити меню" className="rounded-lg p-2 text-2xl leading-none text-slate-300 hover:bg-slate-800">×</button>
+          <button onClick={onNavigate} aria-label="Закрити меню" className="rounded-xl p-2 text-2xl leading-none text-slate-300 hover:bg-white/10">×</button>
         )}
       </div>
 
       <nav className="flex-1 overflow-y-auto p-4">
         {menu.map((item) => item.href === "#" ? (
-          <div key={item.name} className="mb-2 flex items-center gap-3 rounded-xl px-4 py-3 text-slate-500">
+          <div key={item.name} className="mb-1 flex items-center gap-3 rounded-xl px-4 py-3 text-slate-600">
             <span>{item.icon}</span><span>{item.name}</span><span className="ml-auto text-xs">скоро</span>
           </div>
         ) : (
@@ -83,7 +80,7 @@ export default function Sidebar({
             key={item.name}
             href={item.href}
             onClick={onNavigate}
-            className={`mb-2 flex items-center gap-3 rounded-xl px-4 py-3 transition-colors hover:bg-slate-800 ${pathname === item.href ? "bg-slate-800" : ""}`}
+            className={`sidebar-link mb-1 flex items-center gap-3 rounded-xl px-4 py-3 transition-all ${pathname === item.href ? "is-active" : ""}`}
           >
             <span>{item.icon}</span>
 

@@ -1,8 +1,14 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
+  --background: #f5f3ed;
   --foreground: #171717;
+  --ink: #111318;
+  --gold: #f5c542;
+  --gold-dark: #d9a817;
+  --paper: #fffefb;
+  --muted: #6f706f;
+  --line: #e7e2d7;
 }
 
 @theme inline {
@@ -15,13 +21,132 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
   color-scheme: light;
+  -webkit-font-smoothing: antialiased;
+}
+
+.app-shell {
+  background:
+    radial-gradient(circle at 85% 0%, rgba(245, 197, 66, .10), transparent 26rem),
+    #f5f3ed;
+}
+
+.sidebar {
+  background: linear-gradient(180deg, #101218 0%, #171920 100%);
+  box-shadow: 12px 0 40px rgba(17, 19, 24, .08);
+}
+
+.sidebar-link { color: #c9cbd1; }
+.sidebar-link:hover { background: rgba(255,255,255,.07); color: white; transform: translateX(2px); }
+.sidebar-link.is-active {
+  background: var(--gold);
+  color: #111318;
+  font-weight: 750;
+  box-shadow: 0 8px 24px rgba(245, 197, 66, .18);
+}
+
+.app-header {
+  border-bottom: 1px solid rgba(17, 19, 24, .08);
+  background: rgba(255, 254, 251, .88);
+  backdrop-filter: blur(16px);
+}
+
+.menu-button, .sign-out {
+  border: 1px solid var(--line);
+  background: var(--paper);
+}
+.menu-button:hover, .sign-out:hover { border-color: var(--gold-dark); background: #fff9df; }
+
+main > main, main > div {
+  width: 100%;
+}
+
+h1, h2, h3 { letter-spacing: -.025em; }
+
+/* Cards and forms */
+.bg-white {
+  background-color: var(--paper) !important;
+}
+.shadow-sm {
+  box-shadow: 0 10px 32px rgba(31, 28, 20, .055) !important;
+}
+.border, .border-b, .border-t {
+  border-color: var(--line) !important;
+}
+.rounded-2xl {
+  border-radius: 1.15rem !important;
+}
+
+input:not([type="checkbox"]):not([type="radio"]), select, textarea {
+  border: 1px solid #ddd8cc !important;
+  background: #fff !important;
+  color: #1b1c20;
+  outline: none;
+  transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
+}
+input:not([type="checkbox"]):not([type="radio"]), select {
+  min-height: 44px;
+  padding: .65rem .8rem !important;
+}
+textarea { padding: .7rem .8rem !important; }
+input:focus, select:focus, textarea:focus {
+  border-color: var(--gold-dark) !important;
+  box-shadow: 0 0 0 3px rgba(245, 197, 66, .18);
+}
+input::placeholder, textarea::placeholder { color: #aaa69d; }
+label { font-weight: 600; color: #55565a !important; }
+
+button, a { -webkit-tap-highlight-color: transparent; }
+.bg-slate-900, .bg-green-600, .bg-blue-600 {
+  background-color: var(--ink) !important;
+}
+.bg-slate-900:hover, .bg-green-600:hover, .bg-blue-600:hover {
+  background-color: #292b31 !important;
+}
+a.text-blue-600, .text-blue-600 { color: #a77900 !important; }
+
+/* Metric cards get a polished accent without changing page data. */
+.grid > .rounded-2xl.border.bg-white {
+  position: relative;
+  overflow: hidden;
+}
+.grid > .rounded-2xl.border.bg-white::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: var(--gold);
 }
 
 @media (max-width: 639px) {
+  main > main, main > div { padding-left: 1rem !important; padding-right: 1rem !important; }
   .text-4xl {
-    font-size: 1.875rem;
-    line-height: 2.25rem;
+    font-size: 1.65rem;
+    line-height: 2rem;
   }
+  form.rounded-2xl {
+    padding: 1rem !important;
+  }
+  form.space-y-4 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: .85rem;
+  }
+  input:not([type="checkbox"]):not([type="radio"]), select {
+    min-height: 42px;
+    font-size: 16px;
+  }
+  .grid.gap-4 { gap: .75rem; }
+  .mt-8 { margin-top: 1.25rem !important; }
+  .p-5 { padding: 1rem !important; }
+  .text-3xl { font-size: 1.5rem !important; line-height: 2rem !important; }
+  table th, table td { padding-left: 1rem !important; padding-right: 1rem !important; }
+}
+
+@media (min-width: 768px) {
+  main > main, main > div { max-width: 1480px; }
+  form.max-w-2xl, .max-w-2xl form { max-width: 42rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { scroll-behavior: auto !important; transition: none !important; }
 }

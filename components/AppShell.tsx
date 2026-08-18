@@ -14,7 +14,7 @@ export default function AppShell({
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-slate-100 md:flex">
+    <div className="app-shell min-h-screen md:flex">
       <div className="hidden h-screen shrink-0 md:block">
         <Sidebar />
       </div>
@@ -23,7 +23,7 @@ export default function AppShell({
         <div className="fixed inset-0 z-50 flex md:hidden">
           <button
             aria-label="Закрити меню"
-            className="absolute inset-0 bg-slate-950/50"
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
             onClick={() => setMenuOpen(false)}
           />
           <div className="relative h-full shadow-2xl">
