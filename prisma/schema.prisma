@@ -8,15 +8,15 @@ datasource db {
 }
 
 model User {
-  id            String    @id
-  name          String
-  email         String    @unique
-  emailVerified Boolean   @default(false)
-  image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  sessions      Session[]
-  accounts      Account[]
+  id                   String            @id
+  name                 String
+  email                String            @unique
+  emailVerified        Boolean           @default(false)
+  image                String?
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+  sessions             Session[]
+  accounts             Account[]
   workspaceMemberships WorkspaceMember[]
 
   @@map("user")
@@ -28,10 +28,13 @@ model Workspace {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  members   WorkspaceMember[]
-  hostels   Hostel[]
-  residents Resident[]
-  invites   WorkspaceInvite[]
+  members            WorkspaceMember[]
+  hostels            Hostel[]
+  residents          Resident[]
+  invites            WorkspaceInvite[]
+  leadApplications   LeadApplication[]
+  maintenanceTickets MaintenanceTicket[]
+  qualityEntries     QualityEntry[]
 }
 
 model WorkspaceMember {
@@ -114,16 +117,19 @@ model Verification {
 }
 
 model Hostel {
-  id        Int      @id @default(autoincrement())
-  name      String
-  address   String
-  city      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          Int      @id @default(autoincrement())
+  name        String
+  address     String
+  city        String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
   workspaceId String
 
-  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  rooms Room[]
+  workspace          Workspace           @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  rooms              Room[]
+  leadApplications   LeadApplication[]
+  maintenanceTickets MaintenanceTicket[]
+  qualityEntries     QualityEntry[]
 
   @@index([workspaceId])
 }
@@ -136,20 +142,22 @@ model Room {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  hostel Hostel @relation(fields: [hostelId], references: [id])
-  beds    Bed[]
+  hostel             Hostel              @relation(fields: [hostelId], references: [id])
+  beds               Bed[]
+  maintenanceTickets MaintenanceTicket[]
+  qualityEntries     QualityEntry[]
 }
 
 model Bed {
-  id        Int      @id @default(autoincrement())
-  number    Int
-  roomId    Int
-  notes     String?
-  isDisabled Boolean @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         Int      @id @default(autoincrement())
+  number     Int
+  roomId     Int
+  notes      String?
+  isDisabled Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
-  room     Room       @relation(fields: [roomId], references: [id])
+  room     Room      @relation(fields: [roomId], references: [id])
   resident Resident?
   stays    Stay[]
 
@@ -157,32 +165,32 @@ model Bed {
 }
 
 model Resident {
-  id          Int       @id @default(autoincrement())
-  firstName   String
-  lastName    String
-  phone       String?
-  email       String?
-  notes       String?
-  checkIn     DateTime
-  checkOut    DateTime?
-  birthDate   DateTime?
-  gender      Gender?
+  id        Int       @id @default(autoincrement())
+  firstName String
+  lastName  String
+  phone     String?
+  email     String?
+  notes     String?
+  checkIn   DateTime
+  checkOut  DateTime?
+  birthDate DateTime?
+  gender    Gender?
 
   // Нові поля
-  isActive    Boolean   @default(true)
-  archivedAt  DateTime?
+  isActive   Boolean   @default(true)
+  archivedAt DateTime?
 
   // Ліжко тепер необов'язкове
-  bedId       Int?      @unique
+  bedId Int? @unique
 
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
   workspaceId String
 
-  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  bed         Bed?      @relation(fields: [bedId], references: [id])
-  payments    Payment[]
-  stays       Stay[]
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  bed       Bed?      @relation(fields: [bedId], references: [id])
+  payments  Payment[]
+  stays     Stay[]
 
   @@index([workspaceId])
 }
@@ -210,16 +218,16 @@ model Stay {
 }
 
 model Payment {
-  id         Int       @id @default(autoincrement())
+  id         Int         @id @default(autoincrement())
   amount     Decimal
-  paid       Boolean   @default(false)
+  paid       Boolean     @default(false)
   dueDate    DateTime
   paidAt     DateTime?
   notes      String?
   type       PaymentType @default(RENT)
   residentId Int
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
 
   resident Resident @relation(fields: [residentId], references: [id])
 }
@@ -228,4 +236,107 @@ enum PaymentType {
   RENT
   DEPOSIT
   OTHER
+}
+
+model LeadApplication {
+  id            Int        @id @default(autoincrement())
+  workspaceId   String
+  hostelId      Int?
+  fullName      String
+  phone         String
+  email         String?
+  peopleCount   Int        @default(1)
+  desiredMoveIn DateTime?
+  stayMonths    Int?
+  budget        Decimal?
+  source        String     @default("MANUAL")
+  externalId    String?
+  status        LeadStatus @default(NEW)
+  notes         String?
+  assignedTo    String?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  hostel    Hostel?   @relation(fields: [hostelId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId, status])
+  @@index([hostelId])
+  @@index([source, externalId])
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  VIEWING
+  CONFIRMED
+  MOVED_IN
+  REJECTED
+}
+
+model MaintenanceTicket {
+  id            Int            @id @default(autoincrement())
+  workspaceId   String
+  hostelId      Int
+  roomId        Int?
+  category      String
+  description   String
+  photoUrl      String?
+  priority      TicketPriority @default(NORMAL)
+  status        TicketStatus   @default(NEW)
+  reporterName  String?
+  reporterPhone String?
+  assignedTo    String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  completedAt   DateTime?
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  hostel    Hostel    @relation(fields: [hostelId], references: [id], onDelete: Cascade)
+  room      Room?     @relation(fields: [roomId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId, status])
+  @@index([hostelId, roomId])
+}
+
+enum TicketPriority {
+  LOW
+  NORMAL
+  URGENT
+}
+
+enum TicketStatus {
+  NEW
+  ACCEPTED
+  IN_PROGRESS
+  DONE
+}
+
+model QualityEntry {
+  id          Int           @id @default(autoincrement())
+  workspaceId String
+  hostelId    Int?
+  roomId      Int?
+  source      String        @default("INTERNAL")
+  authorName  String?
+  rating      Int?
+  category    String
+  text        String
+  status      QualityStatus @default(NEW)
+  assignedTo  String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  hostel    Hostel?   @relation(fields: [hostelId], references: [id], onDelete: SetNull)
+  room      Room?     @relation(fields: [roomId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId, status])
+  @@index([hostelId, roomId])
+}
+
+enum QualityStatus {
+  NEW
+  REVIEWED
+  RESOLVED
 }

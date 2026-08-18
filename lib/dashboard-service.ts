@@ -36,6 +36,9 @@ export async function getDashboardData(workspaceId: string, now = new Date()) {
     depositsHeld,
     hostels,
     residentDemographics,
+    newLeadApplications,
+    openMaintenanceTickets,
+    newQualityEntries,
   ] = await Promise.all([
     prisma.hostel.count({ where: { workspaceId } }),
     prisma.room.count({ where: { hostel: { workspaceId } } }),
@@ -76,6 +79,9 @@ export async function getDashboardData(workspaceId: string, now = new Date()) {
       where: { workspaceId, isActive: true },
       select: { gender: true, birthDate: true },
     }),
+    prisma.leadApplication.count({ where: { workspaceId, status: "NEW" } }),
+    prisma.maintenanceTicket.count({ where: { workspaceId, status: { not: "DONE" } } }),
+    prisma.qualityEntry.count({ where: { workspaceId, status: "NEW" } }),
   ]);
 
   const hostelOccupancy = hostels.map((hostel) => {
@@ -126,5 +132,6 @@ export async function getDashboardData(workspaceId: string, now = new Date()) {
       unspecified: residentDemographics.filter((item) => !item.gender || item.gender === "OTHER").length,
       averageAge: ages.length ? Math.round(ages.reduce((sum, age) => sum + age, 0) / ages.length) : null,
     },
+    operations: { newLeadApplications, openMaintenanceTickets, newQualityEntries },
   };
 }

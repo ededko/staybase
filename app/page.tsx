@@ -96,6 +96,15 @@ export default async function Home() {
         <div className="demographics-stats"><div><b>{dashboard.demographics.male}</b><span>Чоловіки</span></div><div><b>{dashboard.demographics.female}</b><span>Жінки</span></div><div><b>{dashboard.demographics.averageAge ?? "—"}</b><span>Середній вік</span></div><div><b>{dashboard.demographics.unspecified}</b><span>Не вказано</span></div></div>
       </section>
 
+      <section className="mt-8">
+        <div className="section-heading"><div><p className="eyebrow">РОБОЧІ ПРОЦЕСИ</p><h2>Що потребує уваги</h2></div></div>
+        <div className="workflow-grid mt-4">
+          <Link href="/applications" className="workflow-card"><span>📝</span><div><b>{dashboard.operations.newLeadApplications}</b><p>Нові запити на заселення</p></div><i>→</i></Link>
+          <Link href="/maintenance" className="workflow-card"><span>🛠️</span><div><b>{dashboard.operations.openMaintenanceTickets}</b><p>Відкриті ремонтні заявки</p></div><i>→</i></Link>
+          <Link href="/quality" className="workflow-card"><span>⭐</span><div><b>{dashboard.operations.newQualityEntries}</b><p>Нові записи контролю якості</p></div><i>→</i></Link>
+        </div>
+      </section>
+
       <div className="mt-8 grid gap-6 xl:grid-cols-2">
         <PaymentTable
           title="Прострочені платежі"

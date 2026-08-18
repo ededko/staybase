@@ -66,14 +66,14 @@ export default async function RoomPage({ params, searchParams }: Props) {
         <div className="compact-stat rounded-xl border bg-white"><p className="text-slate-500">Вимкнено</p><p className="mt-2 text-3xl font-bold text-slate-500">{disabledBeds}</p></div>
       </div>
 
-      <div className="mt-8 grid gap-4 md:grid-cols-2">
+      <div className="bed-grid mt-6 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
         {room.beds.map((bed) => (
-          <div key={bed.id} className="rounded-2xl border bg-white p-5 shadow-sm">
-            <h2 className="text-xl font-bold">🛏 Ліжко {bed.number}</h2>
-            <p className="mt-3">Статус: {bed.isDisabled ? <span className="font-semibold text-slate-500">⚪ Вимкнене</span> : bed.resident ? <span className="font-semibold text-red-600">🔴 Зайняте</span> : <span className="font-semibold text-green-600">🟢 Вільне</span>}</p>
-            <p className="mt-2 text-slate-600">Мешканець: {bed.resident ? `${bed.resident.firstName} ${bed.resident.lastName}` : "—"}</p>
-            {bed.resident && <p className="mt-1 text-sm text-slate-500">📞 {bed.resident.phone || "Не вказано"}</p>}
-            <Link href={`/hostels/${hostelId}/rooms/${room.id}/beds/${bed.id}`} className="mt-5 inline-block rounded-lg bg-slate-900 px-4 py-2 text-white hover:bg-slate-800">Відкрити</Link>
+          <div key={bed.id} className="bed-card rounded-2xl border bg-white shadow-sm">
+            <h2 className="font-bold">🛏 Ліжко {bed.number}</h2>
+            <p className="bed-status">{bed.isDisabled ? <span className="font-semibold text-slate-500">⚪ Вимкнене</span> : bed.resident ? <span className="font-semibold text-red-600">● Зайняте</span> : <span className="font-semibold text-green-600">● Вільне</span>}</p>
+            <p className="bed-resident text-slate-600">{bed.resident ? `${bed.resident.firstName} ${bed.resident.lastName}` : "Немає мешканця"}</p>
+            {bed.resident && <p className="bed-phone text-sm text-slate-500">📞 {bed.resident.phone || "Не вказано"}</p>}
+            <Link href={`/hostels/${hostelId}/rooms/${room.id}/beds/${bed.id}`} className="bed-action rounded-xl bg-slate-900 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-800">Відкрити</Link>
           </div>
         ))}
       </div>

@@ -6,7 +6,7 @@ const publicPaths = new Set(["/login", "/register"]);
 
 export async function proxy(request: NextRequest) {
   const session = await auth.api.getSession({ headers: request.headers });
-  const isPublicPath = publicPaths.has(request.nextUrl.pathname);
+  const isPublicPath = publicPaths.has(request.nextUrl.pathname) || request.nextUrl.pathname.startsWith("/report/maintenance");
 
   if (!session && !isPublicPath) {
     return NextResponse.redirect(new URL("/login", request.url));

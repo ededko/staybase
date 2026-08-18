@@ -36,13 +36,18 @@ const menu = [
     icon: "👥",
   },
   {
-    name: "Заявки",
-    href: "#",
+    name: "Заселення",
+    href: "/applications",
     icon: "📝",
   },
   {
-    name: "Відгуки",
-    href: "#",
+    name: "Ремонти",
+    href: "/maintenance",
+    icon: "🛠️",
+  },
+  {
+    name: "Якість",
+    href: "/quality",
     icon: "⭐",
   },
 ];
