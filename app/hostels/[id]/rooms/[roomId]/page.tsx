@@ -59,11 +59,11 @@ export default async function RoomPage({ params, searchParams }: Props) {
         </p>
       )}
 
-      <div className="mt-8 grid gap-4 md:grid-cols-4">
-        <div className="rounded-xl border bg-white p-5"><p className="text-slate-500">Місткість</p><p className="mt-2 text-3xl font-bold">{activeBeds.length}</p></div>
-        <div className="rounded-xl border bg-white p-5"><p className="text-slate-500">Зайнято</p><p className="mt-2 text-3xl font-bold text-red-600">{occupiedBeds}</p></div>
-        <div className="rounded-xl border bg-white p-5"><p className="text-slate-500">Вільно</p><p className="mt-2 text-3xl font-bold text-green-600">{freeBeds}</p></div>
-        <div className="rounded-xl border bg-white p-5"><p className="text-slate-500">Вимкнено</p><p className="mt-2 text-3xl font-bold text-slate-500">{disabledBeds}</p></div>
+      <div className="compact-stats mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
+        <div className="compact-stat rounded-xl border bg-white"><p className="text-slate-500">Місткість</p><p className="mt-2 text-3xl font-bold">{activeBeds.length}</p></div>
+        <div className="compact-stat rounded-xl border bg-white"><p className="text-slate-500">Зайнято</p><p className="mt-2 text-3xl font-bold text-red-600">{occupiedBeds}</p></div>
+        <div className="compact-stat rounded-xl border bg-white"><p className="text-slate-500">Вільно</p><p className="mt-2 text-3xl font-bold text-green-600">{freeBeds}</p></div>
+        <div className="compact-stat rounded-xl border bg-white"><p className="text-slate-500">Вимкнено</p><p className="mt-2 text-3xl font-bold text-slate-500">{disabledBeds}</p></div>
       </div>
 
       <div className="mt-8 grid gap-4 md:grid-cols-2">

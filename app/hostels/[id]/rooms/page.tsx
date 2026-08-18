@@ -46,7 +46,7 @@ export default async function RoomsPage({ params }: Props) {
         <CreateRoomButton hostelId={hostel.id} />
       </div>
 
-      <div className="mt-8 space-y-4">
+      <div className="room-grid mt-6 grid gap-3 lg:grid-cols-2 2xl:grid-cols-3">
         {hostel.rooms.map((room) => {
           const activeBeds = room.beds.filter((bed) => !bed.isDisabled);
           const capacity = activeBeds.length;
@@ -57,7 +57,7 @@ export default async function RoomsPage({ params }: Props) {
           return (
             <div
               key={room.id}
-              className="flex flex-wrap items-center justify-between gap-5 rounded-2xl border bg-white p-6 shadow-sm"
+              className="room-card rounded-2xl border bg-white shadow-sm"
             >
               <div>
                 <h2 className="text-2xl font-bold">{room.name}</h2>
@@ -66,7 +66,7 @@ export default async function RoomsPage({ params }: Props) {
                 </p>
               </div>
 
-              <div className="grid grid-cols-3 gap-4 text-center">
+              <div className="room-card-stats grid grid-cols-3 gap-2 text-center">
                 <div>
                   <p className="text-sm text-slate-500">Місткість</p>
                   <p className="mt-1 text-xl font-bold">{capacity}</p>

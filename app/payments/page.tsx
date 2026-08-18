@@ -121,10 +121,10 @@ export default async function PaymentsPage({ searchParams }: Props) {
         </Link>
       </div>
 
-      <div className="mt-8 grid gap-4 md:grid-cols-3">
-        <div className="rounded-xl border bg-white p-5"><p className="text-slate-500">Очікується</p><p className="mt-2 text-2xl font-bold">{unpaidTotal.toFixed(2)} zł</p></div>
-        <div className="rounded-xl border bg-white p-5"><p className="text-slate-500">Прострочено</p><p className="mt-2 text-2xl font-bold text-red-600">{overdueTotal.toFixed(2)} zł</p></div>
-        <div className="rounded-xl border bg-white p-5"><p className="text-slate-500">Отримані застави</p><p className="mt-2 text-2xl font-bold text-blue-600">{depositsHeld.toFixed(2)} zł</p></div>
+      <div className="compact-stats mt-6 grid grid-cols-2 gap-3 md:grid-cols-3">
+        <div className="compact-stat rounded-xl border bg-white"><p className="text-slate-500">Очікується</p><p className="mt-2 text-2xl font-bold">{unpaidTotal.toFixed(2)} zł</p></div>
+        <div className="compact-stat rounded-xl border bg-white"><p className="text-slate-500">Прострочено</p><p className="mt-2 text-2xl font-bold text-red-600">{overdueTotal.toFixed(2)} zł</p></div>
+        <div className="compact-stat rounded-xl border bg-white"><p className="text-slate-500">Отримані застави</p><p className="mt-2 text-2xl font-bold text-blue-600">{depositsHeld.toFixed(2)} zł</p></div>
       </div>
 
       <form className="mt-6 grid gap-4 rounded-2xl border bg-white p-5 shadow-sm md:grid-cols-6">

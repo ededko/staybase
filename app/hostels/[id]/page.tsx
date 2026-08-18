@@ -54,7 +54,7 @@ export default async function HostelPage({ params }: Props) {
             {hostel.address}
           </p>
 
-          <div className="mt-8 flex gap-3 border-b pb-4">
+          <div className="hostel-tabs mt-6 flex gap-2 overflow-x-auto border-b pb-3">
             <button className="rounded-lg bg-slate-900 px-4 py-2 text-white">
               🏠 Огляд
             </button>
@@ -81,23 +81,23 @@ export default async function HostelPage({ params }: Props) {
         </div>
       </div>
 
-      <div className="mt-8 grid gap-6 md:grid-cols-4">
-        <div className="rounded-2xl border bg-white p-6 shadow-sm">
+      <div className="compact-stats mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
+        <div className="compact-stat rounded-2xl border bg-white shadow-sm">
           <p className="text-slate-500">Кімнат</p>
           <h2 className="mt-3 text-4xl font-bold">{hostel.rooms.length}</h2>
         </div>
 
-        <div className="rounded-2xl border bg-white p-6 shadow-sm">
+        <div className="compact-stat rounded-2xl border bg-white shadow-sm">
           <p className="text-slate-500">Ліжок</p>
           <h2 className="mt-3 text-4xl font-bold">{beds.length}</h2>
         </div>
 
-        <div className="rounded-2xl border bg-white p-6 shadow-sm">
+        <div className="compact-stat rounded-2xl border bg-white shadow-sm">
           <p className="text-slate-500">Мешканців</p>
           <h2 className="mt-3 text-4xl font-bold">{occupiedBeds}</h2>
         </div>
 
-        <div className="rounded-2xl border bg-white p-6 shadow-sm">
+        <div className="compact-stat rounded-2xl border bg-white shadow-sm">
           <p className="text-slate-500">Вільно</p>
           <h2 className="mt-3 text-4xl font-bold text-green-600">
             {freeBeds}
